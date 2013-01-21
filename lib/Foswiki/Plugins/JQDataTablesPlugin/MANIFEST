@@ -32,7 +32,7 @@ pub/System/JQDataTablesPlugin/docs/DataTable.models.oSearch.html
 pub/System/JQDataTablesPlugin/docs/media/images/extended.png
 pub/System/JQDataTablesPlugin/docs/media/images/arrow.jpg
 pub/System/JQDataTablesPlugin/docs/media/images/arrow.png
-pub/System/JQDataTablesPlugin/docs/media/license/Syntax Highlighter
+#pub/System/JQDataTablesPlugin/docs/media/license/Syntax Highlighter
 pub/System/JQDataTablesPlugin/docs/media/css/doc.css
 pub/System/JQDataTablesPlugin/docs/media/css/shThemeDataTables.css
 pub/System/JQDataTablesPlugin/docs/media/css/shCore.css
@@ -59,7 +59,7 @@ pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/index.html
 pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/images/extended.png
 pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/images/arrow.jpg
 pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/images/arrow.png
-pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/license/Syntax Highlighter
+#pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/license/Syntax Highlighter
 pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/css/doc.css
 pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/css/shThemeDataTables.css
 pub/System/JQDataTablesPlugin/extras/ColVis/media/docs/media/css/shCore.css
@@ -97,7 +97,7 @@ pub/System/JQDataTablesPlugin/extras/TableTools/media/images/collection.png
 pub/System/JQDataTablesPlugin/extras/TableTools/media/images/print.png
 pub/System/JQDataTablesPlugin/extras/TableTools/media/images/xls.png
 pub/System/JQDataTablesPlugin/extras/TableTools/media/images/psd/printer.psd
-pub/System/JQDataTablesPlugin/extras/TableTools/media/images/psd/copy document.psd
+#pub/System/JQDataTablesPlugin/extras/TableTools/media/images/psd/copy document.psd
 pub/System/JQDataTablesPlugin/extras/TableTools/media/images/psd/collection.psd
 pub/System/JQDataTablesPlugin/extras/TableTools/media/images/psd/file_types.psd
 pub/System/JQDataTablesPlugin/extras/TableTools/media/images/copy.png
@@ -136,7 +136,7 @@ pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/8ee4007a12.html
 pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/images/extended.png
 pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/images/arrow.jpg
 pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/images/arrow.png
-pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/license/Syntax Highlighter
+#pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/license/Syntax Highlighter
 pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/css/doc.css
 pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/css/shThemeDataTables.css
 pub/System/JQDataTablesPlugin/extras/AutoFill/media/docs/media/css/shCore.css
@@ -178,7 +178,7 @@ pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/index.html
 pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/images/extended.png
 pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/images/arrow.jpg
 pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/images/arrow.png
-pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/license/Syntax Highlighter
+#pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/license/Syntax Highlighter
 pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/css/doc.css
 pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/css/shThemeDataTables.css
 pub/System/JQDataTablesPlugin/extras/ColReorder/media/docs/media/css/shCore.css
@@ -213,7 +213,7 @@ pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/index.html
 pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/images/extended.png
 pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/images/arrow.jpg
 pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/images/arrow.png
-pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/license/Syntax Highlighter
+#pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/license/Syntax Highlighter
 pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/css/doc.css
 pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/css/shThemeDataTables.css
 pub/System/JQDataTablesPlugin/extras/Scroller/media/docs/media/css/shCore.css
@@ -247,7 +247,7 @@ pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/889588ec06.html
 pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/images/extended.png
 pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/images/arrow.jpg
 pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/images/arrow.png
-pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/license/Syntax Highlighter
+#pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/license/Syntax Highlighter
 pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/css/doc.css
 pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/css/shThemeDataTables.css
 pub/System/JQDataTablesPlugin/extras/FixedColumns/docs/media/css/shCore.css
@@ -295,7 +295,7 @@ pub/System/JQDataTablesPlugin/media/images/sort_asc_disabled.png
 pub/System/JQDataTablesPlugin/media/images/sort_both.png
 pub/System/JQDataTablesPlugin/media/images/sort_desc.png
 pub/System/JQDataTablesPlugin/media/images/forward_disabled.png
-pub/System/JQDataTablesPlugin/media/images/Sorting icons.psd
+#pub/System/JQDataTablesPlugin/media/images/Sorting icons.psd
 pub/System/JQDataTablesPlugin/media/images/back_enabled_hover.png
 pub/System/JQDataTablesPlugin/media/images/sort_asc.png
 pub/System/JQDataTablesPlugin/media/images/back_disabled.png

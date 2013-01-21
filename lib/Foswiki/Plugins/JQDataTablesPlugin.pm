@@ -7,8 +7,8 @@ use Assert;
 use Foswiki::Func    ();    # The plugins API
 use Foswiki::Plugins ();    # For the API version
 
-our $VERSION           = '$Rev: 5771 $';
-our $RELEASE           = '1.1.2';
+our $VERSION           = '1.0.0';
+our $RELEASE           = '1.0.0';
 our $SHORTDESCRIPTION  = 'Jquery based progressive enhancement of tables';
 our $NO_PREFS_IN_TOPIC = 1;
 
@@ -22,7 +22,7 @@ sub initPlugin {
 __END__
 Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 
-JQTablePlugin is copyright (C)SvenDOwideit@fosiki.com
+JQTablePlugin is copyright (C)SvenDowideit@fosiki.com
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
