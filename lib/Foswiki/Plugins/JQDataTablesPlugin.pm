@@ -4,13 +4,8 @@ package Foswiki::Plugins::JQDataTablesPlugin;
 use strict;
 use Assert;
 
-use Foswiki::Func    ();    # The plugins API
-use Foswiki::Plugins ();    # For the API version
-
-our $VERSION           = '1.0.0';
-our $RELEASE           = '1.0.0';
-our $SHORTDESCRIPTION  = 'Jquery based progressive enhancement of tables';
-our $NO_PREFS_IN_TOPIC = 1;
+our $VERSION          = '1.0';
+our $SHORTDESCRIPTION = 'Jquery based progressive enhancement of tables';
 
 sub initPlugin {
     my ( $topic, $web, $user, $installWeb ) = @_;
