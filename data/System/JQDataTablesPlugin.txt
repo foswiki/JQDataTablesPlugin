@@ -12,6 +12,13 @@ Adds paging, searching and formatting to your tables automatically - just add =%
 If the plugin is installed and enabled in both places, you will see the table below with added controls. 
 Because this plugin adds table sorting and more, consider disabling =TablePlugin=.
 
+<link rel="stylesheet" href="%ATTACHURL%/jquery.dataTables_themeroller.css" type="text/css" media="all" />		
+		<script type="text/javascript" language="javascript" src="%ATTACHURL%/jquery.dataTables.min.js"></script>
+		<script type="text/javascript" charset="utf-8">
+			$(document).ready(function() {
+				$('table').dataTable();
+			} );
+		</script>
 %JQREQUIRE{datatables}%
 %SEARCH{
 "1"
@@ -26,6 +33,7 @@ nonoise="on"
 %$INSTALL_INSTRUCTIONS%
 
 ---++ Info
+This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/ jQuery plugin.
 
 |  Author: | Foswiki:Main.SvenDowideit |
 |  Copyright: | &copy; 2012, SvenDowideit@fosiki.com |
