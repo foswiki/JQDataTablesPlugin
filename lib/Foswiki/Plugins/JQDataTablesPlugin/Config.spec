@@ -6,6 +6,6 @@
 # ---++ JQueryPlugin
 # ---+++ Extra plugins
 # **STRING**
-$Foswiki::cfg{JQueryPlugin}{Plugins}{datatables}{Module} = 'Foswiki::Plugins::JQDataTablesPlugin::DataTables';
+$Foswiki::cfg{JQueryPlugin}{Plugins}{DataTables}{Module} = 'Foswiki::Plugins::JQDataTablesPlugin::DataTables';
 # **BOOLEAN**
-$Foswiki::cfg{JQueryPlugin}{Plugins}{datatables}{Enabled} = 1;
+$Foswiki::cfg{JQueryPlugin}{Plugins}{DataTables}{Enabled} = 1;

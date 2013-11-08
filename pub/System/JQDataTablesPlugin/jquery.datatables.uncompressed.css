@@ -1,0 +1,99 @@
+table.dataTable {
+  margin: 0.5em auto;
+  clear: both;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.dataTable th {
+  padding: 3px 0px 3px 10px;
+  cursor: pointer;
+  *cursor: hand;
+}
+table.dataTable th .ui-icon {
+  display: inline-block;
+  zoom: 1;
+  vertical-align:bottom;
+}
+
+.dataTables_wrapper {
+  position: relative;
+  clear: both;
+  *zoom: 1;
+}
+
+.dataTables_wrapper .ui-toolbar {
+  background:transparent;
+  padding: 0.5em 0;
+  font-size:95%;
+  border:0;
+}
+.dataTables_wrapper table th {
+  background-image:inherit;
+}
+
+.dataTables_length {
+  float: right;
+}
+
+.dataTables_filter {
+  float: left;
+}
+
+.dataTables_info {
+  clear: both;
+  float: left;
+}
+
+.dataTables_paginate {
+  float: right;
+  padding-right:0.5em;
+}
+.dataTables_paginate .ui-button.ui-state-default,
+.dataTables_paginate .ui-button {
+  background:transparent;
+  border:0;
+  padding:2px 5px;
+  margin:0 1px;
+  text-shadow:none;
+  border-radius:0;
+}
+.dataTables_paginate.paging_full_numbers .ui-button.ui-state-active,
+.dataTables_paginate.paging_full_numbers .ui-button.ui-state-default:hover {
+  background:#b22222;
+  text-decoration:none;
+  color:#fff;
+  opacity:1;
+}
+.dataTables_paginate.paging_full_numbers .ui-button.ui-state-default.ui-state-disabled,
+.dataTables_paginate.paging_full_numbers .ui-button.ui-state-disabled {
+  background:transparent !important;
+  color:inherit;
+  opacity: .35;
+}
+
+.dataTables_processing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250px;
+  height: 30px;
+  margin-left: -125px;
+  margin-top: -15px;
+  padding: 14px 0 2px 0;
+  border: 1px solid #ddd;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  background-color: white;
+}
+
+.dataTables_scroll {
+  clear: both;
+}
+
+.dataTables_scrollBody {
+  *margin-top: -1px;
+  -webkit-overflow-scrolling: touch;
+}
+

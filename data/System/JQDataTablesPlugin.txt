@@ -1,33 +1,71 @@
 %META:TOPICPARENT{name="Plugins"}%
-<!--
-One line description, required for extensions repository catalog.
-   * Set SHORTDESCRIPTION = JQuery progressive enhancement of tables
--->
 ---+!! Data Table JQuery Plugin
 
 %SHORTDESCRIPTION%
 
-Adds paging, searching and formatting to your tables automatically - just add =%<nopJQREQUIRE{datatables}%= to your topic or template
+Adds paging, searching and formatting to your tables automatically - just add =%<!-- -->JQREQUIRE{"datatables"}%= to your topic or template,
+and wrap your tables into a =.jqDataTablesContainer=.
 
-If the plugin is installed and enabled in both places, you will see the table below with added controls. 
-Because this plugin adds table sorting and more, consider disabling =TablePlugin=.
+<verbatim class="tml">
+<div class="jqDataTablesContainer {options}">
+| *Header* | *Header* | *Header* | *Header* |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+</div>
+</verbatim>
 
-<link rel="stylesheet" href="%ATTACHURL%/jquery.dataTables_themeroller.css" type="text/css" media="all" />		
-		<script type="text/javascript" language="javascript" src="%ATTACHURL%/jquery.dataTables.min.js"></script>
-		<script type="text/javascript" charset="utf-8">
-			$(document).ready(function() {
-				$('table').dataTable();
-			} );
-		</script>
-%JQREQUIRE{datatables}%
+Use jquery.metadata ={options}= to configure the !DataTable. See http://www.datatables.net/usage/options for a full list of all options.
+
+Some useful parameters are:
+
+| *Name* | *Description* | *Default* |
+| aLengthMenu | an array of integers to chose from in the length select control | =[ 5, 10, 25, 50, 100 ]= |
+| bFilter | switch on/off the filter control | true |
+| bInfo | switch on/off the info control | true |
+| bLengthChange | switch on/off the length select | true |
+| bPaginate | switch on/off the paginate widget | true |
+| iDisplayLength | number of rows to display initially | 10 | 
+| sPaginationType| ='full_numbers'= - a more verbose pager, or ='two_buttons'= - only a forward and backwards arrow | ='full_numbers'= |
+
+For convenience there's a shortcut to switch off all controls, use ='nonoise':true=. This is equivalent to
+='bFilter': false, 'bInfo':false, 'bPaginate': false, 'bLengthChange': false=.
+
+Use this to disable all controls and only add cliend-side column sorting:
+
+<verbatim class="tml">
+<div class="jqDataTablesContainer {'nonoise':false}">
+| *Header* | *Header* | *Header* | *Header* |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+</div>
+</verbatim>
+
+
+<verbatim class="tml">
+%STARTSECTION{"example1"}%
+<div class="jqDataTablesContainer">
 %SEARCH{
-"1"
-type="query"
-topic="*Plugin"
-header="| *Name* | *rev* | *author* |"
-format="| $topic | $rev | $wikiname |"
-nonoise="on"
+  "1"
+  type="query"
+  topic="*Plugin"
+  header="| *Name* | *Date* | *Author* |"
+  format="| $topic | $date | $wikiname |"
+  nonoise="on"
 }%
+</div>
+%ENDSECTION{"example1"}%
+</verbatim>
+
+%JQREQUIRE{"datatables" warn="off"}%
+%IF{"context DataTablesEnabled" 
+  then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example1\"}$percnt" 
+  else="If the plugin is installed and enabled, you will see the table above with added controls."
+}%
+
 
 ---++ Installation
 %$INSTALL_INSTRUCTIONS%
@@ -35,13 +73,25 @@ nonoise="on"
 ---++ Info
 This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/ jQuery plugin.
 
-|  Author: | Foswiki:Main.SvenDowideit |
-|  Copyright: | &copy; 2012, SvenDowideit@fosiki.com |
+<!--
+   * Set SHORTDESCRIPTION = JQuery progressive enhancement of tables
+-->
+|  Author: | Foswiki:Main.SvenDowideit, Foswiki:Main.michaelDaum |
+|  Copyright: | &copy; 2012, SvenDowideit@fosiki.com, &copy; 2013 Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
-|  1.0.0 (18 Jan 2013): | Initial version |
+|  08 Nov 2013: | make it work under ={NoConflict}=; \
+                  enable jquery-ui theming by default now; \
+                  created a non-goofy default look and feel to play nicely with a skin's table design; \
+                  only add !DataTables support to specific tables, not all; \
+                  make it configurable with declarative metadata; \
+                  compress and minify plugin assets; \
+                  remove files not required by the plugin; \
+                  clean up controls and css classes added by !TablePlugin's; \
+                  added type detector for foswiki date columns | 
+|  18 Jan 2013: | Initial version |
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
 
