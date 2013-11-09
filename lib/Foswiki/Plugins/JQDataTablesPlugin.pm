@@ -4,7 +4,7 @@ package Foswiki::Plugins::JQDataTablesPlugin;
 use strict;
 use Assert;
 
-our $VERSION          = '1.0';
+our $VERSION          = '2.0';
 our $SHORTDESCRIPTION = 'Jquery based progressive enhancement of tables';
 
 sub initPlugin {

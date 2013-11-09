@@ -118,5 +118,6 @@ This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/
                   clean up controls and css classes added by !TablePlugin's; \
                   added type detector for foswiki date columns | 
 |  18 Jan 2013: | Initial version |
+|  Dependencies: | %$DEPENDENCIES% |
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
