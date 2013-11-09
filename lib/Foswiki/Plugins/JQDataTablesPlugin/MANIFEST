@@ -3,6 +3,9 @@ data/System/JQDataTablesPlugin.txt 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/Config.spec 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin.pm 0644
+pub/System/JQDataTablesPlugin/currency.js 0644
+pub/System/JQDataTablesPlugin/currency.js.gz 0644
+pub/System/JQDataTablesPlugin/currency.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/date-foswiki.js 0644
 pub/System/JQDataTablesPlugin/date-foswiki.js.gz 0644
 pub/System/JQDataTablesPlugin/date-foswiki.uncompressed.js 0644
@@ -16,3 +19,6 @@ pub/System/JQDataTablesPlugin/jquery.datatables.js.gz 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.uncompressed.css 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/Makefile 0644
+pub/System/JQDataTablesPlugin/metrics.js 0644
+pub/System/JQDataTablesPlugin/metrics.js.gz 0644
+pub/System/JQDataTablesPlugin/metrics.uncompressed.js 0644

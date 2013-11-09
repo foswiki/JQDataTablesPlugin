@@ -20,6 +20,7 @@ sub new {
             css        => ['jquery.datatables.css'],
             javascript => [
                 'jquery.datatables.js', 'date-foswiki.js',
+                'currency.js',          'metrics.js',
                 'jquery.datatables.init.js'
             ],
             dependencies => [ 'JQUERYPLUGIN::THEME', 'metadata', 'livequery' ],

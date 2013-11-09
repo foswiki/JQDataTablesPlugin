@@ -1,5 +1,5 @@
 /*
- * Adds a new sorting option to dataTables called <code>date-foswiki</code>. 
+ * Adds a new sorting option to dataTables called <code>date-foswiki</code>.
  * Matches and sorts date strings in the format: <code>dd mmm yyyy - hh:mm</code>. For example:
  *   <ul>
  *      <li>02 Feb 1978</li>
@@ -11,14 +11,26 @@
 (function($) {
   "use strict";
 
-  // convert to a foswiki date string to a number which we can use to sort
-  var dateToOrd = function (string) {
-    return (new Date(string.replace(/-/, ""))).getTime();
-  };
+  var mon = new RegExp(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/i);
 
-  // This will help DataTables magic detect the date format; Unshift so that it's the first data type (so it takes priority over existing)
-  jQuery.fn.dataTableExt.aTypes.unshift(
-    function (string) {
+  // convert to a foswiki date string to a number which we can use to sort
+  function dateToOrd(string) {
+    string = string.replace("&nbsp;", "").replace(/-/, "").replace(/^ | $/g, "");
+
+    if (string === "") {
+      return 0; // an empty string is an invalid Date 
+    }
+
+    if (!mon.test(string)) { // prevent simple numerics <= 12 to be detected as dates
+      return NaN;
+    }
+
+    return (new Date(string)).getTime();
+  }
+
+  // add auto-detection
+  $.fn.dataTableExt.aTypes.unshift(
+    function(string) {
       if (isNaN(dateToOrd(string))) {
         return null;
       }
@@ -26,16 +38,18 @@
     }
   );
 
-  // define the sorts
-  jQuery.fn.dataTableExt.oSort['date-foswiki-asc'] = function (a, b) {
-    var ordA = dateToOrd(a),
-        ordB = dateToOrd(b);
-    return (ordA < ordB) ? -1 : ((ordA > ordB) ? 1 : 0);
-  };
+  // define sorting
+  $.extend($.fn.dataTableExt.oSort, {
+    'date-foswiki-pre': function(a) {
+      var epoch = dateToOrd(a);
+      return epoch;
+    },
+    'date-foswiki-asc': function(a, b) {
+      return a - b;
+    },
+    'date-foswiki-desc': function(a, b) {
+      return b - a;
+    }
+  })
 
-  jQuery.fn.dataTableExt.oSort['date-foswiki-desc'] = function (a, b) {
-    var ordA = dateToOrd(a),
-        ordB = dateToOrd(b);
-    return (ordA < ordB) ? 1 : ((ordA > ordB) ? -1 : 0);
-  };
 })(jQuery);

@@ -13,7 +13,7 @@ table.dataTable th {
 table.dataTable th .ui-icon {
   display: inline-block;
   zoom: 1;
-  vertical-align:bottom;
+  vertical-align:text-bottom;
 }
 
 .dataTables_wrapper {

@@ -1,13 +1,13 @@
+%META:TOPICINFO{author="micha" comment="reprev" date="1384025482" format="1.1" reprev="3" version="3"}%
 %META:TOPICPARENT{name="Plugins"}%
----+!! Data Table JQuery Plugin
-
+---+!! JQuery Data Tables
 %SHORTDESCRIPTION%
 
 Adds paging, searching and formatting to your tables automatically - just add =%<!-- -->JQREQUIRE{"datatables"}%= to your topic or template,
 and wrap your tables into a =.jqDataTablesContainer=.
 
 <verbatim class="tml">
-<div class="jqDataTablesContainer {options}">
+<div class="jqDataTablesContainer>
 | *Header* | *Header* | *Header* | *Header* |
 | Data | Data | Data | Data |
 | Data | Data | Data | Data |
@@ -21,21 +21,19 @@ Use jquery.metadata ={options}= to configure the !DataTable. See http://www.data
 Some useful parameters are:
 
 | *Name* | *Description* | *Default* |
+| aaSorting | an array specifying the columns to be sorted initially; e.g. ='aaSorting':[ [2,'asc'] ]= will sort the third column in ascending order | ='aaSorting':[ [0, 'asc'] ]= |
 | aLengthMenu | an array of integers to chose from in the length select control | =[ 5, 10, 25, 50, 100 ]= |
-| bFilter | switch on/off the filter control | true |
-| bInfo | switch on/off the info control | true |
-| bLengthChange | switch on/off the length select | true |
-| bPaginate | switch on/off the paginate widget | true |
+| bFilter | switch on/off the filter control | false |
+| bInfo | switch on/off the info control | false |
+| bLengthChange | switch on/off the length select | false |
+| bPaginate | switch on/off the paginate widget | false |
 | iDisplayLength | number of rows to display initially | 10 | 
 | sPaginationType| ='full_numbers'= - a more verbose pager, or ='two_buttons'= - only a forward and backwards arrow | ='full_numbers'= |
 
-For convenience there's a shortcut to switch off all controls, use ='nonoise':true=. This is equivalent to
-='bFilter': false, 'bInfo':false, 'bPaginate': false, 'bLengthChange': false=.
-
-Use this to disable all controls and only add cliend-side column sorting:
+Use this to enable additional controls for filtering and pagination:
 
 <verbatim class="tml">
-<div class="jqDataTablesContainer {'nonoise':false}">
+<div class="jqDataTablesContainer {'bFilter':true, 'bInfo':true, 'bLengthChange': true, 'bPaginate':true }">
 | *Header* | *Header* | *Header* | *Header* |
 | Data | Data | Data | Data |
 | Data | Data | Data | Data |
@@ -44,10 +42,12 @@ Use this to disable all controls and only add cliend-side column sorting:
 </div>
 </verbatim>
 
+Here's an example generating a table dynamically and then add a filter and pagination on top:
 
+%JQREQUIRE{"datatables" warn="off"}%
 <verbatim class="tml">
 %STARTSECTION{"example1"}%
-<div class="jqDataTablesContainer">
+<div class="jqDataTablesContainer {'bFilter':true, 'bPaginate':true, 'bInfo':true }">
 %SEARCH{
   "1"
   type="query"
@@ -60,12 +60,37 @@ Use this to disable all controls and only add cliend-side column sorting:
 %ENDSECTION{"example1"}%
 </verbatim>
 
-%JQREQUIRE{"datatables" warn="off"}%
-%IF{"context DataTablesEnabled" 
+%IF{"context JQDataTablesPluginEnabled" 
   then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example1\"}$percnt" 
-  else="If the plugin is installed and enabled, you will see the table above with added controls."
 }%
 
+<nop>%TOPIC% comes with additional sorting features for specific types of data:
+
+   * numeric
+   * string
+   * date (extended to be able to parse Foswiki's default date format)
+   * currency
+   * metrics (e.g. killo, mega, giga, tera, ...)
+
+Click on the table headers to sort the columns according to their data type.
+
+<verbatim class="tml">
+%STARTSECTION{"example2"}%
+<div class="jqDataTablesContainer">
+| *#* | *String* | *Date* | *Number* | *Currency* | *Size* |
+| 3 | ActionTrackerPlugin | 27 Jan 2010 - 17:07 | 1 | 1,00 € | 10KB |
+| 1 | AntiWikiSpamPlugin | 03 Jan 2013 - 09:07	| 10 | 10,00 € | 3GB |
+| 2 | BibtexPlugin | 13 May 2012 - 02:59 | 0.01 | 1,01 | 100MB |
+| 5 | CommentPlugin | 10 Apr 2011 - 23:39 | 100 | 0,10 | 2024kB |
+| 4 | FindElsewherePlugin | 23 Dec 2012 - 17:06 | 20 | 100,- € | 0.1kB |
+| 6 | FindElsewherePlugin |  | 0 | -100,- | 1024TB |
+</div>
+%ENDSECTION{"example2"}%
+</verbatim>
+
+%IF{"context JQDataTablesPluginEnabled" 
+  then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example2\"}$percnt" 
+}%
 
 ---++ Installation
 %$INSTALL_INSTRUCTIONS%
@@ -82,6 +107,7 @@ This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  09 Nov 2013: | implemented sorting for currency, and metrics |
 |  08 Nov 2013: | make it work under ={NoConflict}=; \
                   enable jquery-ui theming by default now; \
                   created a non-goofy default look and feel to play nicely with a skin's table design; \
@@ -94,4 +120,3 @@ This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/
 |  18 Jan 2013: | Initial version |
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
-

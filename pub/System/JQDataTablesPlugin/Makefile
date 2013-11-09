@@ -3,7 +3,9 @@ TARGET=\
   jquery.datatables.init.js \
   jquery.datatables.js \
   jquery.datatables.css \
-  date-foswiki.js
+  date-foswiki.js \
+  currency.js \
+  metrics.js
 
 -include $(FOSWIKI_ROOT)/pub/System/JQueryPlugin/Makefile.include
 

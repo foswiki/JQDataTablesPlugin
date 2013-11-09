@@ -3,11 +3,16 @@ jQuery(function($) {
 
   var defaults = {
     "bJQueryUI": true,
+    "bFilter": false,
+    "bInfo": false,
+    "bLengthChange": false,
+    "bPaginate": false,
 
     "sPaginationType": "full_numbers",
     "aLengthMenu": [ 5, 10, 25, 50, 100 ],
     "iDisplayLength": 10,
     "asStripeClasses": ['foswikiTableEven', 'foswikiTableOdd'],
+
     "oLanguage": {
       "sSearch": "<b>Search:</b>",
       "sInfo": "_START_ - _END_ of <b>_TOTAL_</b>",
@@ -20,13 +25,6 @@ jQuery(function($) {
   $('.jqDataTablesContainer').livequery(function() {
     var $this = $(this), 
         opts = $.extend({}, defaults, $this.metadata());
-
-    if (opts.nonoise) {
-      opts.bFilter = false;
-      opts.bInfo = false;
-      opts.bPaginate = false;
-      opts.bLengthChange = false;
-    }
 
     $this.addClass("jqDataTablesContainerInited").children("table").each(function() {
       var $table = $(this)
