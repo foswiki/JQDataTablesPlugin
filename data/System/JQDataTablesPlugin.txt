@@ -102,11 +102,12 @@ This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/
    * Set SHORTDESCRIPTION = JQuery progressive enhancement of tables
 -->
 |  Author: | Foswiki:Main.SvenDowideit, Foswiki:Main.michaelDaum |
-|  Copyright: | &copy; 2012, SvenDowideit@fosiki.com, &copy; 2013 Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2012, SvenDowideit@fosiki.com, &copy; 2013-2014 Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  18 Mar 2014: | remove =console.log()= leftover; improve sorting date columns |
 |  09 Nov 2013: | implemented sorting for currency, and metrics |
 |  08 Nov 2013: | make it work under ={NoConflict}=; \
                   enable jquery-ui theming by default now; \

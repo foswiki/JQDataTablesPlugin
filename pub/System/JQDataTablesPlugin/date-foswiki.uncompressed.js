@@ -31,7 +31,7 @@
   // add auto-detection
   $.fn.dataTableExt.aTypes.unshift(
     function(string) {
-      if (isNaN(dateToOrd(string))) {
+      if (typeof(string) !== 'string' || isNaN(dateToOrd(string))) {
         return null;
       }
       return "date-foswiki";

@@ -6,7 +6,6 @@ table.dataTable {
 }
 
 table.dataTable th {
-  padding: 3px 0px 3px 10px;
   cursor: pointer;
   *cursor: hand;
 }
@@ -20,6 +19,9 @@ table.dataTable th .ui-icon {
   position: relative;
   clear: both;
   *zoom: 1;
+}
+.DataTables_sort_wrapper {
+  white-space:nowrap;
 }
 
 .dataTables_wrapper .ui-toolbar {

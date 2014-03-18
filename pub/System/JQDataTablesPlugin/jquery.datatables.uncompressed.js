@@ -322,7 +322,6 @@
 				var sType = aTypes[i]( sData );
 				if ( sType !== null )
 				{
-//console.log(sType+": "+sData);
 					return sType;
 				}
 			}

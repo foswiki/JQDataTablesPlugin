@@ -2,14 +2,14 @@
 package Foswiki::Plugins::JQDataTablesPlugin;
 
 use strict;
+use warnings;
 use Assert;
 
-our $VERSION          = '2.0';
-our $SHORTDESCRIPTION = 'Jquery based progressive enhancement of tables';
+our $VERSION          = '2.01';
+our $RELEASE          = '2.01';
+our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 
 sub initPlugin {
-    my ( $topic, $web, $user, $installWeb ) = @_;
-
     return 1;
 }
 
