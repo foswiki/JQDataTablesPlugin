@@ -1,1 +1,10 @@
 *.gz
+*.swp
+attic
+JQDataTablesPlugin_installer
+JQDataTablesPlugin_installer.pl
+JQDataTablesPlugin.md5
+JQDataTablesPlugin.sha1
+JQDataTablesPlugin.tgz
+JQDataTablesPlugin.txt
+JQDataTablesPlugin.zip

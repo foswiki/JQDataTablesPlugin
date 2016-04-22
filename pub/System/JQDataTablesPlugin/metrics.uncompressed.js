@@ -9,7 +9,7 @@
  *   </ul>
  */
 (function($) {
-  "use strict";
+"use strict";
 
   var 
     numberReg = new RegExp(/[+-]?\d+(\.\d+)?/),

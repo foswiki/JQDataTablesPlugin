@@ -1,14 +1,20 @@
-FOSWIKI_ROOT?=~/foswiki/trunk/core
-TARGET=\
-  jquery.datatables.init.js \
-  jquery.datatables.js \
-  jquery.datatables.css \
-  date-foswiki.js \
-  currency.js \
-  metrics.js
+FOSWIKI_ROOT?=~/foswiki/core
+TARGET=jquery.datatables.addons.js jquery.datatables.css
+
+ADDONS_SOURCE=\
+        date-foswiki.uncompressed.js \
+        currency.uncompressed.js \
+        metrics.uncompressed.js \
+        jquery.datatables.init.uncompressed.js
+
 
 -include $(FOSWIKI_ROOT)/pub/System/JQueryPlugin/Makefile.include
 
 clean:
-	rm $(TARGET) *.gz
+	rm -f $(TARGET) *.gz *.map
+
+jquery.datatables.addons.uncompressed.js: $(ADDONS_SOURCE)
+	@echo generating $@
+	@$(CAT) $^ > $@
+
 

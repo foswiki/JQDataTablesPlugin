@@ -1,13 +1,73 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1384025482" format="1.1" reprev="3" version="3"}%
-%META:TOPICPARENT{name="Plugins"}%
----+!! JQuery Data Tables
-%SHORTDESCRIPTION%
+%META:TOPICINFO{author="micha" comment="reprev" date="1459412123" format="1.1" reprev="4" version="4"}%
+---+!! %TOPIC%
+%FORMFIELD{"Description"}%
 
+%TOC%
+
+---++ Overview
+
+This plugin implements a widget to enhance normal HTML tables with extra navigation features such as sorting, filtering and paginating through
+datasets. The %DATATABLE macro is specifically tailored towards datasets created on the base of [[%SYSTEMWEB%.DataForms][DataForms]]. It lets you
+easily compile an overview of data of that kind stored in a web as well as select specific records for further use in wiki apps.
+
+%TOPIC% can be used in two distinct ways:
+
+   * by means of the %DATATABLE macro
+   * by means of HTML5 and JSON to enhance HTML tables directly
+
+%DATATABLE takes a pointer to a !DataForm definition and then creates a table based on the known formfields in that definition to create columns
+of a kind matching the formfield types. It then uses a connector fetch the data from the backend. There are several kinds of connectors available
+at the moment based on the additional functionality installed on your Foswiki:
+
+   * =search=: this one uses the normal native search feature of Foswiki also used by the %SEARCH macro
+   * =dbcache=: this one uses [[Foswiki:Extensions/DBCachePlugin][DBCachePlugin]] which is implementing a faster still native search, also available via its %DBQUERY macro
+   * =solr=: this connector uses the [[Foswiki:Extensions/SolrPlugin][SolrPlugin]] which uses a Solr fulltext search engine integrated into Foswiki.
+
+A default connector can be defined as required. Note however, that even though %DATATGABLE tries to hide the differences of available connectors
+behind the scene, connectors will behave differently, i.e. when it comes to filtering. Also, performance is vastly different with the =search= connector being the slowest
+one. It is strongly recommended that you at least install [[Foswiki:Extensions/DBCachePlugin][DBCachePlugin]] for acceptable performance in every-day usage.
+
+---++ DATATABLE
+
+Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
+
+| *Parameter* | *Description* | *Default* |
+| =&lt;query>=, =query= |  | |
+| =class= | | |
+| =width= | | |
+| =web= | | |
+| =form= | | |
+| =paging=, =pager= | | |
+| =scrolling=, =scroller= | | |
+| =searching= | | |
+| =searchmode= | | |
+| =reverse= | | |
+| =info= | | |
+| =ordering= | | |
+| =scrollx= | | |
+| =scrolly= | | |
+| =scrollcollapse= | | |
+| =searchdelay= | | |
+| =sort= | | |
+| =lengthmenu= | | |
+| =rows= | | |
+| =columns= | | |
+| =selecting= | | |
+| =selectmode= | | |
+| =selectproperty= | | |
+| =selection= | | |
+| =responsive= | | |
+| =fixedheader= | | |
+| =&lt;field-name>_title= | | |
+| =&lt;field-name>_width= | | |
+| =connector= | | |
+
+---++ HTML5
 Adds paging, searching and formatting to your tables automatically - just add =%<!-- -->JQREQUIRE{"datatables"}%= to your topic or template,
 and wrap your tables into a =.jqDataTablesContainer=.
 
 <verbatim class="tml">
-<div class="jqDataTablesContainer>
+<div class="jqDataTablesContainer">
 | *Header* | *Header* | *Header* | *Header* |
 | Data | Data | Data | Data |
 | Data | Data | Data | Data |
@@ -16,7 +76,7 @@ and wrap your tables into a =.jqDataTablesContainer=.
 </div>
 </verbatim>
 
-Use jquery.metadata ={options}= to configure the !DataTable. See http://www.datatables.net/usage/options for a full list of all options.
+Use jquery.metadata ={options}= to configure the !DataTable. See http://datatables.net/reference/index for a full list of all options.
 
 Some useful parameters are:
 
@@ -78,11 +138,11 @@ Click on the table headers to sort the columns according to their data type.
 %STARTSECTION{"example2"}%
 <div class="jqDataTablesContainer">
 | *#* | *String* | *Date* | *Number* | *Currency* | *Size* |
-| 3 | ActionTrackerPlugin | 27 Jan 2010 - 17:07 | 1 | 1,00 € | 10KB |
-| 1 | AntiWikiSpamPlugin | 03 Jan 2013 - 09:07	| 10 | 10,00 € | 3GB |
+| 3 | ActionTrackerPlugin | 27 Jan 2010 - 17:07 | 1 | 1,00 | 10KB |
+| 1 | AntiWikiSpamPlugin | 03 Jan 2013 - 09:07 | 10 | 10,00 | 3GB |
 | 2 | BibtexPlugin | 13 May 2012 - 02:59 | 0.01 | 1,01 | 100MB |
 | 5 | CommentPlugin | 10 Apr 2011 - 23:39 | 100 | 0,10 | 2024kB |
-| 4 | FindElsewherePlugin | 23 Dec 2012 - 17:06 | 20 | 100,- € | 0.1kB |
+| 4 | FindElsewherePlugin | 23 Dec 2012 - 17:06 | 20 | 100,- | 0.1kB |
 | 6 | FindElsewherePlugin |  | 0 | -100,- | 1024TB |
 </div>
 %ENDSECTION{"example2"}%
@@ -95,18 +155,10 @@ Click on the table headers to sort the columns according to their data type.
 ---++ Installation
 %$INSTALL_INSTRUCTIONS%
 
----++ Info
-This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/ jQuery plugin.
+---++ Dependencies
+%$DEPENDENCIES%
 
-<!--
-   * Set SHORTDESCRIPTION = JQuery progressive enhancement of tables
--->
-|  Author: | Foswiki:Main.SvenDowideit, Foswiki:Main.michaelDaum |
-|  Copyright: | &copy; 2012, SvenDowideit@fosiki.com, &copy; 2013-2014 Michael Daum http://michaeldaumconsulting.com |
-|  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
-|  Release: | %$RELEASE% |
-|  Version: | %$VERSION% |
-|  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+---++ Change History
 |  18 Mar 2014: | remove =console.log()= leftover; improve sorting date columns |
 |  09 Nov 2013: | implemented sorting for currency, and metrics |
 |  08 Nov 2013: | make it work under ={NoConflict}=; \
@@ -119,6 +171,14 @@ This foswiki plugin encapsulates version 1.9.4 of the http://www.datatables.net/
                   clean up controls and css classes added by !TablePlugin's; \
                   added type detector for foswiki date columns | 
 |  18 Jan 2013: | Initial version |
-|  Dependencies: | %$DEPENDENCIES% |
-|  Home: | http://foswiki.org/Extensions/%TOPIC% |
-|  Support: | http://foswiki.org/Support/%TOPIC% |
+
+%META:FORM{name="PackageForm"}%
+%META:FIELD{name="Author" title="Author" value="Foswiki:Main.SvenDowideit, Foswiki:Main.MichaelDaum"}%
+%META:FIELD{name="Version" title="Version" value="%25$VERSION%25"}%
+%META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
+%META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
+%META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
+%META:FIELD{name="Copyright" title="Copyright" value="2012 SvenDowideit@fosiki.com, 2013-2016 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
+%META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25TOPIC%25"}%
+%META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25TOPIC%25"}%
