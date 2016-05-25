@@ -28,14 +28,14 @@ base class for grid connectors used to feed a jqGrid widget
 =cut
 
 sub new {
-    my ( $class, $session ) = @_;
+  my ($class, $session) = @_;
 
-    my $this = {
-        session     => $session,
-        propertyMap => {},
-    };
+  my $this = {
+    session => $session,
+    propertyMap => {},
+  };
 
-    return bless( $this, $class );
+  return bless($this, $class);
 }
 
 =begin TML
@@ -48,7 +48,7 @@ url parameter as provided by the GRID widget.
 =cut
 
 sub restHandleSave {
-    die "restHandleSave not implemented";
+  die "restHandleSave not implemented";
 }
 
 =begin TML
@@ -60,7 +60,7 @@ creates a query based on the current request
 =cut
 
 sub buildQuery {
-    die "buildQuery not implemented";
+  die "buildQuery not implemented";
 }
 
 =begin TML
@@ -72,7 +72,7 @@ perform the actual search and fetch result
 =cut
 
 sub search {
-    die "search not implemented";
+  die "search not implemented";
 }
 
 =begin TML
@@ -85,56 +85,55 @@ url parameter as provided by the Datatables widget.
 =cut
 
 sub restHandleSearch {
-    my ( $this, $request, $response ) = @_;
+  my ($this, $request, $response) = @_;
 
-    my $echo  = $request->param("draw")   || 0;
-    my $skip  = $request->param("start")  || 0;
-    my $limit = $request->param("length") || 10;
-    my $web   = $request->param('web')    || $this->{session}->{webName};
-    $web =
-      Foswiki::Sandbox::untaint( $web, \&Foswiki::Sandbox::validateWebName );
+  my $echo = $request->param("draw") || 0;
+  my $skip = $request->param("start") || 0;
+  my $limit = $request->param("length") || 10;
+  my $web = $request->param('web') || $this->{session}->{webName};
+  $web = Foswiki::Sandbox::untaint($web, \&Foswiki::Sandbox::validateWebName);
 
-    my $query = $this->buildQuery($request);
+  my $query = $this->buildQuery($request);
 
-    my @fields  = ();
-    my $sort    = "";
-    my $reverse = "off";
-    my $i       = 0;
+  my @fields = ();
+  my $sort = "";
+  my $reverse = "off";
+  my $i = 0;
 
-    my @columns = $this->getColumnsFromRequest($request);
-    foreach my $column (@columns) {
-        my $fieldName = $column->{data};
-        $sort = $fieldName
-          if ( $request->param("order[0][column]") || 0 ) eq $i;
-        $reverse = "on" if ( $request->param("order[0][dir]") || "" ) eq "desc";
-        push @fields, $fieldName;
-        $i++;
-    }
+  my @columns = $this->getColumnsFromRequest($request);
+  foreach my $column (@columns) {
+    my $fieldName = $column->{data};
+    $sort = $fieldName
+      if ($request->param("order[0][column]") || 0) eq $i;
+    $reverse = "on" if ($request->param("order[0][dir]") || "") eq "desc";
+    push @fields, $fieldName;
+    $i++;
+  }
 
-    my $totalRecords        = 0;
-    my $totalDisplayRecords = 0;
-    my $data;
+  my $totalRecords = 0;
+  my $totalDisplayRecords = 0;
+  my $data;
 
-    ( $totalRecords, $totalDisplayRecords, $data ) = $this->search(
-        web     => $web,
-        query   => $query,
-        sort    => $sort,
-        reverse => $reverse,
-        fields  => \@fields,
-        limit   => $limit,
-        skip    => $skip,
-    );
+  ($totalRecords, $totalDisplayRecords, $data) = $this->search(
+    web => $web,
+    query => $query,
+    sort => $sort,
+    reverse => $reverse,
+    fields => \@fields,
+    limit => $limit,
+    skip => $skip,
+  );
 
-    my $result = {
-        draw            => $echo,
-        recordsTotal    => $totalRecords,
-        recordsFiltered => $totalDisplayRecords,
-        data            => $data
-    };
+  my $result = {
+    draw => $echo,
+    recordsTotal => $totalRecords,
+    recordsFiltered => $totalDisplayRecords,
+    data => $data
+  };
 
-    $result = JSON::to_json( $result, pretty => 1 );
+  $result = JSON::to_json($result, pretty => 1);
 
-    $this->{session}->writeCompletePage( $result, 'view', 'application/json' );
+  $this->{session}->writeCompletePage($result, 'view', 'application/json');
 }
 
 =begin TML
@@ -146,14 +145,14 @@ maps a column name to the actual property in the store.
 =cut
 
 sub column2Property {
-    my ( $this, $columnName ) = @_;
+  my ($this, $columnName) = @_;
 
-    return unless defined $columnName;
+  return unless defined $columnName;
 
-    # escape column name to disambiguate property names from formfield names
-    return $columnName if $columnName =~ s/^\///;
+  # escape column name to disambiguate property names from formfield names
+  return $columnName if $columnName =~ s/^\///;
 
-    return $this->{propertyMap}{$columnName} || $columnName;
+  return $this->{propertyMap}{$columnName} || $columnName;
 }
 
 =begin TML
@@ -166,26 +165,26 @@ transmitted by the Datatables client
 =cut
 
 sub getColumnsFromRequest {
-    my ( $this, $request ) = @_;
+  my ($this, $request) = @_;
 
-    my @columns = ();
-    my @params  = $request->param();
-    foreach my $key (@params) {
-        next unless $key =~ /^columns\[(\d+)\]\[(.*)\]$/;
-        my $index = $1;
-        my $prop  = $2;
-        my $val   = $request->param($key);
-        $prop =~ s/[\[\]]+/_/g;
+  my @columns = ();
+  my @params = $request->param();
+  foreach my $key (@params) {
+    next unless $key =~ /^columns\[(\d+)\]\[(.*)\]$/;
+    my $index = $1;
+    my $prop = $2;
+    my $val = $request->param($key);
+    $prop =~ s/[\[\]]+/_/g;
 
-        if ( $val =~ /^(true|false)$/ ) {
-            $val = $val eq 'true' ? 1 : 0;
-        }
-
-        #print STDERR "key=$key, index=$index, prop=$prop, val=$val\n";
-        $columns[$index]{$prop} = $val;
+    if ($val =~ /^(true|false)$/) {
+      $val = $val eq 'true' ? 1 : 0;
     }
 
-    return @columns;
+    #print STDERR "key=$key, index=$index, prop=$prop, val=$val\n";
+    $columns[$index]{$prop} = $val;
+  }
+
+  return @columns;
 }
 
 =begin TML
@@ -197,9 +196,9 @@ from Fowiki.pm
 =cut
 
 sub urlDecode {
-    my $text = shift;
-    $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
-    return $text;
+  my $text = shift;
+  $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
+  return $text;
 }
 
 1;

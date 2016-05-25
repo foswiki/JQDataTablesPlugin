@@ -21,7 +21,7 @@ use warnings;
 use Foswiki::Plugins::JQDataTablesPlugin::Connector ();
 use Error qw(:try);
 use Foswiki::AccessControlException ();
-use Foswiki::Meta                   ();
+use Foswiki::Meta ();
 
 our @ISA = qw( Foswiki::Plugins::JQDataTablesPlugin::Connector );
 
@@ -45,92 +45,87 @@ are considered to be the name of the formfield, except "id" and "oper".
 =cut
 
 sub restHandleSave {
-    my ( $this, $request, $response ) = @_;
+  my ($this, $request, $response) = @_;
 
-    #print STDERR "called restGridConnectorSave()\n";
-    my @params = $request->param();
+  #print STDERR "called restGridConnectorSave()\n";
+  my @params = $request->param();
 
-    # get the target topic
-    my $web;
-    my $topic;
-    foreach my $key (@params) {
-        next if $key eq 'oper';
-        my $val = $request->param($key);
+  # get the target topic
+  my $web;
+  my $topic;
+  foreach my $key (@params) {
+    next if $key eq 'oper';
+    my $val = $request->param($key);
 
-        #print STDERR "param: $key=$val\n";
-        if ( $key eq 'id' ) {
-            ( $web, $topic ) =
-              Foswiki::Func::normalizeWebTopicName( undef, $val );
-        }
+    #print STDERR "param: $key=$val\n";
+    if ($key eq 'id') {
+      ($web, $topic) = Foswiki::Func::normalizeWebTopicName(undef, $val);
     }
+  }
 
-    #print STDERR "web=$web, topic=$topic\n";
+  #print STDERR "web=$web, topic=$topic\n";
 
-    # check access rights
-    my $wikiName = Foswiki::Func::getWikiName();
-    my ( $meta, $text ) = Foswiki::Func::readTopic( $web, $topic );
-    throw Foswiki::AccessControlException( 'CHANGE', $wikiName, $web, $topic,
-        $Foswiki::Meta::reason )
-      unless Foswiki::Func::checkAccessPermission( 'CHANGE', $wikiName, $text,
-        $topic, $web, $meta );
+  # check access rights
+  my $wikiName = Foswiki::Func::getWikiName();
+  my ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
+  throw Foswiki::AccessControlException('CHANGE', $wikiName, $web, $topic, $Foswiki::Meta::reason)
+    unless Foswiki::Func::checkAccessPermission('CHANGE', $wikiName, $text, $topic, $web, $meta);
 
-    #print STDERR "$wikiName has got change access to $web.$topic\n";
+  #print STDERR "$wikiName has got change access to $web.$topic\n";
 
-    # store formfields
-    foreach my $key (@params) {
-        next if $key =~ /^(id|oper)$/;
-        my $val = $request->param($key);
+  # store formfields
+  foreach my $key (@params) {
+    next if $key =~ /^(id|oper)$/;
+    my $val = $request->param($key);
 
-        $val =~ s/^\s+//;
-        $val =~ s/\s+$//;
+    $val =~ s/^\s+//;
+    $val =~ s/\s+$//;
 
-        my $field = $meta->get( 'FIELD', $key );
+    my $field = $meta->get('FIELD', $key);
 
- # update fields already known to the DataForm _as currently used on this topic_
- # however, a !DataForm might be instantiated in parts only. So the real check
- # would be against the !DataForm _definition_ and not only against the current
- # meta data
-        if ($field) {
-            $field->{value} = $val;
-            $meta->putKeyed( 'FIELD', $field );
+    # update fields already known to the DataForm _as currently used on this topic_
+    # however, a !DataForm might be instantiated in parts only. So the real check
+    # would be against the !DataForm _definition_ and not only against the current
+    # meta data
+    if ($field) {
+      $field->{value} = $val;
+      $meta->putKeyed('FIELD', $field);
 
-        }
-        else {
+    } else {
 
-            # If it is a TopicTitles that didn't find its way into a !DataForm,
-            # then store it into a PREFERENCE value.
-            if ( $key eq 'TopicTitle' ) {
+      # If it is a TopicTitles that didn't find its way into a !DataForm,
+      # then store it into a PREFERENCE value.
+      if ($key eq 'TopicTitle') {
 
-                # store topic title in prefs
-                $meta->putKeyed(
-                    'PREFERENCE',
-                    {
-                        name  => 'TOPICTITLE',
-                        title => 'TOPICTITLE',
-                        type  => 'Local',
-                        value => $val,
-                    }
-                );
-            }
-            else {
+        # store topic title in prefs
+        $meta->putKeyed(
+          'PREFERENCE',
+          {
+            name => 'TOPICTITLE',
+            title => 'TOPICTITLE',
+            type => 'Local',
+            value => $val,
+          }
+        );
+      } else {
         # SMELL what about these? See comments above to better consult the
         # DataForm definition before stuffing anything into a META:FIELD.
         # Otherwise these should become META:PREFERENCEs thus removing the above
         # TopicTitle exception
-                $meta->putKeyed(
-                    'FIELD',
-                    {
-                        name  => $key,
-                        title => $key,
-                        value => $val,
-                    }
-                );
-            }
-        }
+        $meta->putKeyed(
+          'FIELD',
+          {
+            name => $key,
+            title => $key,
+            value => $val,
+          }
+        );
+      }
     }
+  }
 
-    # any exceptions are catched by the calling code
-    Foswiki::Func::saveTopic( $web, $topic, $meta, $text );
+  # any exceptions are catched by the calling code
+  Foswiki::Func::saveTopic($web, $topic, $meta, $text);
 }
 
 =begin TML
@@ -140,33 +135,32 @@ get the topic title
 =cut
 
 sub getTopicTitle {
-    my ( $this, $web, $topic, $meta ) = @_;
+  my ($this, $web, $topic, $meta) = @_;
 
-    my $topicTitle = '';
+  my $topicTitle = '';
 
-    ($meta) = Foswiki::Func::readTopic( $web, $topic ) unless $meta;
+  ($meta) = Foswiki::Func::readTopic($web, $topic) unless $meta;
 
-    my $field = $meta->get( 'FIELD', 'TopicTitle' );
+  my $field = $meta->get('FIELD', 'TopicTitle');
+  $topicTitle = $field->{value} if $field && $field->{value};
+
+  unless ($topicTitle) {
+    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
     $topicTitle = $field->{value} if $field && $field->{value};
+  }
 
-    unless ($topicTitle) {
-        $field = $meta->get( 'PREFERENCE', 'TOPICTITLE' );
-        $topicTitle = $field->{value} if $field && $field->{value};
+  if (!defined($topicTitle) || $topicTitle eq '') {
+    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
+      $topicTitle = $web;
+    } else {
+      $topicTitle = $topic;
     }
+  }
 
-    if ( !defined($topicTitle) || $topicTitle eq '' ) {
-        if ( $topic eq $Foswiki::cfg{HomeTopicName} ) {
-            $topicTitle = $web;
-        }
-        else {
-            $topicTitle = $topic;
-        }
-    }
+  # bit of cleanup
+  $topicTitle =~ s/<!--.*?-->//g;
 
-    # bit of cleanup
-    $topicTitle =~ s/<!--.*?-->//g;
-
-    return $topicTitle;
+  return $topicTitle;
 }
 
 1;
