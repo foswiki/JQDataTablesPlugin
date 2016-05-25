@@ -1,12 +1,1 @@
--q 
--l=0 
--i=2 
--bt=2 
--pt=2 
--sbt=2
--ce
--novalign
--sot
--nbbb
--nbbc
-
+-q -l=0 -i=2 -bt=2 -pt=2 -sbt=2 -ce -novalign -sot -nbbb -nbbc
