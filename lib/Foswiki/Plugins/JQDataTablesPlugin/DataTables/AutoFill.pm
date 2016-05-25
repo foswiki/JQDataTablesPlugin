@@ -15,7 +15,7 @@ sub new {
         $class->SUPER::new(
             $session,
             name         => 'DataTablesAutoFill',
-            version      => '2.1.1',
+            version      => '2.1.2',
             author       => 'SpryMedia Ltd',
             homepage     => 'http://datatables.net/',
             puburl       => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',

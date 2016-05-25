@@ -149,6 +149,10 @@ sub column2Property {
     my ( $this, $columnName ) = @_;
 
     return unless defined $columnName;
+
+    # escape column name to disambiguate property names from formfield names
+    return $columnName if $columnName =~ s/^\///;
+
     return $this->{propertyMap}{$columnName} || $columnName;
 }
 

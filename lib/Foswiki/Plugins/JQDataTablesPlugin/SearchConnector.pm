@@ -272,15 +272,17 @@ sub search {
             my $propertyName = $this->column2Property($fieldName);
             next if !$propertyName || $propertyName eq '#';
 
+            my $isEscaped = substr($fieldName, 0, 1) eq '/' ? 1:0;
+
             my $cell;
 
-            if ( $propertyName eq 'index' ) {
+            if ( !$isEscaped && $propertyName eq 'index' ) {
                 $cell = {
                     "display" => "<span class='rowNumber'>$index</span>",
                     "raw"     => $index,
                 };
             }
-            elsif ( $propertyName eq "info.date" ) {
+            elsif ( !$isEscaped && $propertyName eq "info.date" ) {
                 my $info = $topicObj->getRevisionInfo();
                 my $date = Foswiki::Time::formatTime( $info->{date} || 0 );
                 my $html =
@@ -291,7 +293,7 @@ sub search {
                     "raw"     => $date,
                 };
             }
-            elsif ( $propertyName eq "createinfo.date" ) {
+            elsif ( !$isEscaped && $propertyName eq "createinfo.date" ) {
                 my @info = Foswiki::Func::getRevisionInfo( $web, $topic, 1 );
                 my $date = Foswiki::Time::formatTime( $info[0] || 0 );
                 my $html =
@@ -302,7 +304,7 @@ sub search {
                     "raw"     => $date,
                 };
             }
-            elsif ( $propertyName eq 'name' ) {
+            elsif ( !$isEscaped && $propertyName eq 'name' ) {
                 $cell = {
                     "display" => "<a href='"
                       . Foswiki::Func::getViewUrl( $web, $topic )
@@ -310,7 +312,7 @@ sub search {
                     "raw" => $topic,
                 };
             }
-            elsif ( $propertyName eq 'TopicTitle' ) {
+            elsif ( !$isEscaped && $propertyName eq 'TopicTitle' ) {
                 my $topicTitle =
                   $this->getTopicTitle( $web, $topic, $topicObj );
                 $cell = {
@@ -320,7 +322,7 @@ sub search {
                     "raw" => $topicTitle,
                 };
             }
-            elsif ( $propertyName eq "wikiname" ) {
+            elsif ( !$isEscaped && $propertyName eq "wikiname" ) {
                 my $info = $topicObj->getRevisionInfo();
                 my $author =
                   Foswiki::Func::getWikiName( $info->{author} ) || '';
@@ -336,7 +338,7 @@ sub search {
                     "raw"     => $author,
                 };
             }
-            elsif ( $propertyName eq "createinfo.author" ) {
+            elsif ( !$isEscaped && $propertyName eq "createinfo.author" ) {
                 my @info = Foswiki::Func::getRevisionInfo( $web, $topic, 1 );
                 my $author = $info[1] || '';
                 my $topicTitle =
@@ -351,7 +353,7 @@ sub search {
                     "raw"     => $author,
                 };
             }
-            elsif ( $propertyName =~ /(Image|Photo|Logo)/ ) {
+            elsif ( !$isEscaped && $propertyName =~ /(Image|Photo|Logo)/ ) {
                 $cell = $topicObj->get( 'FIELD', $propertyName );
                 $cell = $cell->{value} if defined $cell;
                 my $url = $cell;
@@ -370,7 +372,7 @@ sub search {
                     "raw"     => $cell || "",
                 };
             }
-            elsif ( $propertyName =~ /^email$/i ) {
+            elsif ( !$isEscaped && $propertyName =~ /^email$/i ) {
                 $cell = $topicObj->get( 'FIELD', $propertyName );
                 $cell = $cell->{value} if defined $cell;
                 my $html = $cell ? "<a href='mailto:$cell'>$cell</a>" : "";

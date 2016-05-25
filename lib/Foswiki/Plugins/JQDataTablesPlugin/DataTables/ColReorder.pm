@@ -15,7 +15,7 @@ sub new {
         $class->SUPER::new(
             $session,
             name         => 'DataTablesColReorder',
-            version      => '1.3.1',
+            version      => '1.3.2',
             author       => 'SpryMedia Ltd',
             homepage     => 'http://datatables.net/',
             puburl       => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',

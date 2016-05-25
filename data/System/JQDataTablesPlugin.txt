@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1459412123" format="1.1" reprev="4" version="4"}%
+%META:TOPICINFO{author="micha" comment="reprev" date="1464182351" format="1.1" reprev="7" version="7"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -29,45 +29,89 @@ one. It is strongly recommended that you at least install [[Foswiki:Extensions/D
 
 ---++ DATATABLE
 
+Using a %DATATABLE you can query a set of topics and display their structured data in a dynamic table. Results are best when querying structured data attached to your topics
+as each formfield defined in the [[%SYSTEMWEB%.DataForms][DataForm]] directly correlates to a column in the generated table. In this case you may specify the form definition
+in the =form= parameter and formfields in the =columns= parameter. The %DATATABLE will then use this information to properly display formfield values as well as sort columns
+along the technical representation. For example a date formfield will properly be displayed according to your locale's date format while sorting by date uses date values represented
+as epoch seconds.
+
 Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 
 | *Parameter* | *Description* | *Default* |
-| =&lt;query>=, =query= |  | |
-| =class= | | |
-| =width= | | |
-| =web= | | |
-| =form= | | |
-| =paging=, =pager= | | |
-| =scrolling=, =scroller= | | |
-| =searching= | | |
-| =searchmode= | | |
-| =reverse= | | |
-| =info= | | |
-| =ordering= | | |
-| =scrollx= | | |
-| =scrolly= | | |
-| =scrollcollapse= | | |
-| =searchdelay= | | |
-| =sort= | | |
-| =lengthmenu= | | |
-| =rows= | | |
-| =columns= | | |
-| =selecting= | | |
-| =selectmode= | | |
-| =selectproperty= | | |
-| =selection= | | |
-| =responsive= | | |
-| =fixedheader= | | |
-| =&lt;field-name>_title= | | |
-| =&lt;field-name>_width= | | |
-| =connector= | | |
+| =&lt;query>=, =query= | specify a search query to filter rows on the server-side; NOTE: the query language might vary depending on the =connector= being used, e.g. =dbcache= vs =search= vs =solr= | |
+| =connector= | connector to be used to fetch data dynamically from the backend; possible values are =search= (using Foswiki's native %SEARCH), =dbcache= (needs Foswiki:Extensions/DBCachePlugin), =solr= (needs Foswiki:Extensions/SolrPlugin), additional connectors may be implemented by plugins; NOTE: for general-purpose search =dbcache= is the best choice | defined in =$Foswiki::cfg{JQDataTablesPlugin}{DefaultConnector}= |
+| =class= | additional css class to be added to the widget in addition to =foswikiTable= | |
+| =width= | width of table, e.g. =100%= and the like | |
+| =web= | web to query for data | current web |
+| =form= | data form definition | |
+| =paging=, =pager= | switch on/off paging data; NOTE: this parameter is deactivated when =scrolling= is specifed as well (see [[https://datatables.net/reference/option/paging][docu]]) | =off= |
+| =pagelength=, =rows= | number of rows to be displayed when =paging= is enabled (see [[https://datatables.net/reference/option/pageLength][docu]]) | =10= |
+| =lengthmenu= | switches on a menu element to change the page length (see [[https://datatables.net/reference/option/lengthMenu][docu]]) | =[10, 25, 50, 100]= |
+| =scrolling=, =scroller= | switch on/off dynamic scrolling; data will be fetched from the backend as you are scrolling up and down; NOTE: this parameter disables =paging= as these two features are mutual exclusive | =off= |
+| =searching= | switch on/off the global search box (see [[https://datatables.net/reference/option/searching][docu]]) | =off= |
+| =searchmode= | defines how to search, either using one search box covering all columns (=global=), or using one search box per column (=multi=) | =global= |
+| =searchdelay= | delay before changes in a search box will cause new data to be fetched from the backend | =400= |
+| =sort= | specifies the column for initial ordering (see [[https://datatables.net/reference/option/order][docu]]) | first column |
+| =reverse= | specifies the initial ordering direction | =off= |
+| =info= | switch on/off the info about the number of rows in the set (see [[https://datatables.net/reference/option/info][docu]]) | =off= |
+| =ordering= | switch on/off the ability to sort the table by clicking on a column header (see [[https://datatables.net/reference/option/ordering][docu]]) | =on= |
+| =scrollx= | switch on/off horizontal scrolling (see [[https://datatables.net/reference/option/scrollX][docu]]) | =off= |
+| =scrolly= | specify vertical scrolling (see [[https://datatables.net/reference/option/scrollY][docu]]) | =off= |
+| =scrollcollapse= | switch on/off collapsing of the table height on small data sets (see [[https://datatables.net/reference/option/scrollCollapse][docu]]) | =off= |
+| =columns= | comma-separated list of formfield names to be displayed; see the notes on special columns below | all formfields of the !DataForm specified by =form=  |
+| =selecting= | switch on/off [[https://datatables.net/extensions/select/][select extension]] | |
+| =selectproperty= | specifies the property of a row to be selected when =selection= is enabled | =topic= |
+| =selectmode= | possible values are =os=, =single=, =multi=, this specifies the way a selection is made (see [[https://datatables.net/reference/option/select.style][docu]]) | =multi= |
+| =responsive= | switch on/off [[https://datatables.net/extensions/responsive/][responsive extension]] | |
+| =fixedheader= | switch on/off [[https://datatables.net/extensions/fixedheader/][fixed header extension]] | |
+| =&lt;field-name>_title= | a column title for a given =field-name=, e.g. =ProjectState_title="State"= | name of the formfield as specified in =columns= |
+| =&lt;field-name>_width= | column width for a given field, e.g. =ProjectID_width=5em= | |
+
+---+++ Special column names
+
+In general column names specified in the =columns= parameter of the %DATATABLE parameter directly relate to a formfield of an attached !DataForm. Values are displayed and sorted according the the type of 
+the formfield. There are however a few column names that have a special meaning or trigger an additional behavior on data in this column:
+
+   * =index=: this is an auto-generated column enumerating the rows in a table
+   * =Date=, =Changed=, =Modified=, =Created=, =info.date=, =createdate=: these fields are all date fields and treated accordingly 
+   * =Topic=: alias for =topic=
+   * =TopicTitle=: displays the !TopicTitle of a topic linking to it 
+   * =By=, =Author=: alias for author of recent topic revision
+   * =Creator=: author if the initial topic revision
+   * =Worflow=: name of the workflow assigned to a topic
+   * A column name starting with a =/= (slash) will be excluded from any special treatment, i.e. =/Author= will _not_ be interpreted as the author of the recent topic revision, but as the =Author= formfield of a !DataForm (see below example).
+
+---+++ Example
+
+Below example lists all topics in the %SYSTEMWEB% web that have the [[%SYSTEMWEB%.PackageForm]] attached to it:
+
+<verbatim class="tml">
+%STARTSECTION{"example3"}%
+%DATATABLE{
+   web="%SYSTEMWEB%"
+   form="%SYSTEMWEB%.PackageForm"
+   paging="on"
+   searching="on"
+   info="on"
+   pagelength="10"
+   lengthmenu="5, 10, 20, 50, 100"
+   columns="index, Topic, Description, Version, Release, /Author"
+}%
+%ENDSECTION{"example3"}%
+</verbatim>
+
+%IF{"context JQDataTablesPluginEnabled" 
+  then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example3\"}$percnt" 
+}%
 
 ---++ HTML5
-Adds paging, searching and formatting to your tables automatically - just add =%<!-- -->JQREQUIRE{"datatables"}%= to your topic or template,
-and wrap your tables into a =.jqDataTablesContainer=.
+
+A data table can also be applied to an already existing table enhancing it with additional features such as paging, client-side sorting, searching etc.
+This is done by wrapping your tables into a =.jqDataTablesContainer= div element and specify additional parameters using HTML5 data attributes
 
 <verbatim class="tml">
-<div class="jqDataTablesContainer">
+%JQREQUIRE{"datatables"}%
+<div class="jqDataTablesContainer" data-paginate="true" data-searching="true" data-info="true">
 | *Header* | *Header* | *Header* | *Header* |
 | Data | Data | Data | Data |
 | Data | Data | Data | Data |
@@ -76,24 +120,10 @@ and wrap your tables into a =.jqDataTablesContainer=.
 </div>
 </verbatim>
 
-Use jquery.metadata ={options}= to configure the !DataTable. See http://datatables.net/reference/index for a full list of all options.
-
-Some useful parameters are:
-
-| *Name* | *Description* | *Default* |
-| aaSorting | an array specifying the columns to be sorted initially; e.g. ='aaSorting':[ [2,'asc'] ]= will sort the third column in ascending order | ='aaSorting':[ [0, 'asc'] ]= |
-| aLengthMenu | an array of integers to chose from in the length select control | =[ 5, 10, 25, 50, 100 ]= |
-| bFilter | switch on/off the filter control | false |
-| bInfo | switch on/off the info control | false |
-| bLengthChange | switch on/off the length select | false |
-| bPaginate | switch on/off the paginate widget | false |
-| iDisplayLength | number of rows to display initially | 10 | 
-| sPaginationType| ='full_numbers'= - a more verbose pager, or ='two_buttons'= - only a forward and backwards arrow | ='full_numbers'= |
-
-Use this to enable additional controls for filtering and pagination:
+See http://datatables.net/reference/index for a full list of all options.
 
 <verbatim class="tml">
-<div class="jqDataTablesContainer {'bFilter':true, 'bInfo':true, 'bLengthChange': true, 'bPaginate':true }">
+<div class="jqDataTablesContainer" data-paginate="true" data-searching="true" data-info="true">
 | *Header* | *Header* | *Header* | *Header* |
 | Data | Data | Data | Data |
 | Data | Data | Data | Data |
@@ -102,18 +132,19 @@ Use this to enable additional controls for filtering and pagination:
 </div>
 </verbatim>
 
-Here's an example generating a table dynamically and then add a filter and pagination on top:
+---++ Example
+This example generates a table dynamically using a [[%SYSTEMWEB%.FormattedSearch]]:
 
 %JQREQUIRE{"datatables" warn="off"}%
 <verbatim class="tml">
 %STARTSECTION{"example1"}%
-<div class="jqDataTablesContainer {'bFilter':true, 'bPaginate':true, 'bInfo':true }">
+<div class="jqDataTablesContainer" data-paginate="true" data-searching="true" data-info="true">
 %SEARCH{
   "1"
   type="query"
   topic="*Plugin"
   header="| *Name* | *Date* | *Author* |"
-  format="| $topic | $date | $wikiname |"
+  format="| $topic | $date | $wikiusername |"
   nonoise="on"
 }%
 </div>
@@ -140,10 +171,10 @@ Click on the table headers to sort the columns according to their data type.
 | *#* | *String* | *Date* | *Number* | *Currency* | *Size* |
 | 3 | ActionTrackerPlugin | 27 Jan 2010 - 17:07 | 1 | 1,00 | 10KB |
 | 1 | AntiWikiSpamPlugin | 03 Jan 2013 - 09:07 | 10 | 10,00 | 3GB |
-| 2 | BibtexPlugin | 13 May 2012 - 02:59 | 0.01 | 1,01 | 100MB |
+| 2 | RenderListPlugin | 13 May 2012 - 02:59 | 0.01 | 1,01 | 100MB |
 | 5 | CommentPlugin | 10 Apr 2011 - 23:39 | 100 | 0,10 | 2024kB |
 | 4 | FindElsewherePlugin | 23 Dec 2012 - 17:06 | 20 | 100,- | 0.1kB |
-| 6 | FindElsewherePlugin |  | 0 | -100,- | 1024TB |
+| 6 | JsonRpcContrib |  | 0 | -100,- | 1024TB |
 </div>
 %ENDSECTION{"example2"}%
 </verbatim>
@@ -159,6 +190,9 @@ Click on the table headers to sort the columns according to their data type.
 %$DEPENDENCIES%
 
 ---++ Change History
+%TABLE{columnwidths="7em" tablewidth="100%"}%
+|  25 May 2015: | updated to latest version of !DataTables |
+|  22 Apr 2015: | implemented server-side grid widget |
 |  18 Mar 2014: | remove =console.log()= leftover; improve sorting date columns |
 |  09 Nov 2013: | implemented sorting for currency, and metrics |
 |  08 Nov 2013: | make it work under ={NoConflict}=; \

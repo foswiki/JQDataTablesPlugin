@@ -19,7 +19,7 @@ sub new {
         $class->SUPER::new(
             $session,
             name       => 'DataTables',
-            version    => '1.10.11',
+            version    => '1.10.12',
             author     => 'SpryMedia Ltd',
             homepage   => 'http://datatables.net/',
             puburl     => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',
@@ -134,18 +134,18 @@ sub handleDataTable {
     my $thePageLength = $params->{rows} || $params->{pagelength};
     $this->_push( $html5Data, "page-length", $thePageLength ) if $thePageLength;
 
-    my @selectedFields = ();
+    my @columnFields = ();
     my $formParam      = '';
 
     my $theCols = $params->{columns};
     if ($theCols) {
         foreach my $fieldName ( split( /\s*,\s*/, $theCols ) ) {
-            push @selectedFields, $fieldName;
+            push @columnFields, $fieldName;
         }
     }
 
     my $theSelecting = Foswiki::Func::isTrue( $params->{selecting}, 0 );
-    my $theSelectMode     = $params->{selectmode}     || "multiple";
+    my $theSelectMode     = $params->{selectmode}     || "multi";
     my $theSelectProperty = $params->{selectproperty} || "Topic";
     my $selectInput       = "";
     if ($theSelecting) {
@@ -198,9 +198,9 @@ sub handleDataTable {
         };
         return $error if $error;
         if ( $form && !$theCols ) {
-            @selectedFields = map { $_->{name} } @{ $form->getFields() };
+            @columnFields = map { $_->{name} } @{ $form->getFields() };
 
-            #unshift @selectedFields, "Topic";
+            #unshift @columnFields, "Topic";
         }
 
         $formParam = $formTopic;
@@ -215,7 +215,7 @@ sub handleDataTable {
     push @thead, "<tr>";
     my $index = 0;
 
-    unless ( grep { /^($theSelectProperty)$/i } @selectedFields ) {
+    unless ( grep { /^($theSelectProperty)$/i } @columnFields ) {
         push @columns,
           {
             data    => $theSelectProperty,
@@ -240,7 +240,7 @@ sub handleDataTable {
     }
 
     my $order = [ [ 0, $theReverse ] ];    # default
-    foreach my $fieldName (@selectedFields) {
+    foreach my $fieldName (@columnFields) {
         push @thead, "<th>$fieldName</th>";
         my $col = {
             "data" => $fieldName,
@@ -282,15 +282,15 @@ sub handleDataTable {
             push @multiFilter, "<th></th>";
         }
 
-        my $title = $params->{ $fieldName . '_title' };
-        if ($title) {
-            $col->{title} = $title;
-        }
+
+        # construct column title
+        my $title;
+        $title = $fieldName if $fieldName =~ s/^\///;
+        $title = $params->{$fieldName . '_title'} if defined $params->{$fieldName . '_title'};
+        $col->{title} = $title if $title;
 
         my $width = $params->{ $fieldName . '_width' };
-        if ($width) {
-            $col->{width} = $width;
-        }
+        $col->{width} = $width if $width;
 
         push @columns, $col;
         $order = [ [ $index, "$theReverse" ] ] if $theSort eq $fieldName;

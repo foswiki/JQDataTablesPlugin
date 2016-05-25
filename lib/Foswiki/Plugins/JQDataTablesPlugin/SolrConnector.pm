@@ -256,18 +256,20 @@ sub search {
             foreach my $fieldName ( @{ $params{fields} } ) {
                 my $propertyName = $this->column2Property($fieldName);    # TODO
                 next if !$propertyName || $propertyName eq '#';
+            
+                my $isEscaped = substr($fieldName, 0, 1) eq '/' ? 1:0;
 
                 my $cell = join( ", ", $doc->values_for($propertyName) );
 
                 #writeDebug("fieldName=$fieldName, propertyName=$propertyName");
 
-                if ( $propertyName eq 'index' ) {
+                if ( !$isEscaped && $propertyName eq 'index' ) {
                     $cell = {
                         "display" => "<span class='rowNumber'>$index</span>",
                         "raw"     => $index,
                     };
                 }
-                elsif ( $propertyName =~ /^(Date|date|createdate)$/ ) {
+                elsif ( !$isEscaped && $propertyName =~ /^(Date|date|createdate)$/ ) {
                     my $epoch = Foswiki::Time::parseTime($cell);
                     my $html =
                       $cell
@@ -281,7 +283,7 @@ sub search {
                         "raw"     => Foswiki::Time::formatTime( $epoch || 0 ),
                     };
                 }
-                elsif ( $propertyName eq 'topic' ) {
+                elsif ( !$isEscaped && $propertyName eq 'topic' ) {
                     $cell = {
                         "display" => "<a href='"
                           . Foswiki::Func::getViewUrl( $params{web}, $topic )
@@ -289,7 +291,7 @@ sub search {
                         "raw" => $topic,
                     };
                 }
-                elsif ( $propertyName eq 'title' ) {
+                elsif ( !$isEscaped && $propertyName eq 'title' ) {
                     $cell = {
                         "display" => "<a href='"
                           . Foswiki::Func::getViewUrl( $params{web}, $topic )

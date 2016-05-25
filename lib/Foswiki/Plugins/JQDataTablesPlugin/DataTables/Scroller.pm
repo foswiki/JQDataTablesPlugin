@@ -15,7 +15,7 @@ sub new {
         $class->SUPER::new(
             $session,
             name     => 'DataTablesScroller',
-            version  => '1.4.1',
+            version  => '1.4.2',
             author   => 'SpryMedia Ltd',
             homepage => 'https://datatables.net/extensions/scroller/',
             puburl   => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',

@@ -15,7 +15,7 @@ sub new {
         $class->SUPER::new(
             $session,
             name       => 'DataTablesButtons',
-            version    => '1.1.2',
+            version    => '1.2.0',
             author     => 'SpryMedia Ltd',
             homepage   => 'http://datatables.net/',
             puburl     => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',

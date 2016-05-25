@@ -245,15 +245,17 @@ sub search {
             my $propertyName = $this->column2Property($fieldName);
             next if !$propertyName || $propertyName eq '#';
 
+            my $isEscaped = substr($fieldName, 0, 1) eq '/' ? 1:0;
+
             my $cell = $db->expandPath( $topicObj, $propertyName );
 
-            if ( $propertyName eq 'index' ) {
+            if ( !$isEscaped && $propertyName eq 'index' ) {
                 $cell = {
                     "display" => "<span class='rowNumber'>$index</span>",
                     "raw"     => $index,
                 };
             }
-            elsif ( $propertyName =~
+            elsif ( !$isEscaped && $propertyName =~
                 /^(Date|Changed|Modified|Created|info\.date|createdate)$/ )
             {
                 my $html =
@@ -268,7 +270,7 @@ sub search {
                     "raw"     => Foswiki::Time::formatTime( $cell || 0 ),
                 };
             }
-            elsif ( $propertyName eq 'topic' ) {
+            elsif ( !$isEscaped && $propertyName eq 'topic' ) {
                 $cell = {
                     "display" => "<a href='"
                       . Foswiki::Func::getViewUrl( $params{web}, $topic )
@@ -276,7 +278,7 @@ sub search {
                     "raw" => $topic,
                 };
             }
-            elsif ( $propertyName eq 'topictitle' ) {
+            elsif ( !$isEscaped && $propertyName eq 'topictitle' ) {
                 $cell = {
                     "display" => "<a href='"
                       . Foswiki::Func::getViewUrl( $params{web}, $topic )
@@ -284,7 +286,7 @@ sub search {
                     "raw" => $cell,
                 };
             }
-            elsif ( $propertyName =~
+            elsif ( !$isEscaped && $propertyName =~
                 /^(Author|Creator|info\.author|createauthor)$/ )
             {
                 my $topicTitle = Foswiki::Plugins::DBCachePlugin::getTopicTitle(
@@ -302,7 +304,7 @@ sub search {
                     "raw"     => $cell || "",
                 };
             }
-            elsif ( $propertyName =~ /(Image|Photo|Logo)/ ) {
+            elsif ( !$isEscaped && $propertyName =~ /(Image|Photo|Logo)/ ) {
                 my $url = $cell;
                 unless ( $url =~ /^(http:)|\// ) {
                     $url =
@@ -321,7 +323,7 @@ sub search {
                     "raw"     => $cell || "",
                 };
             }
-            elsif ( $propertyName =~ /^email$/i ) {
+            elsif ( !$isEscaped && $propertyName =~ /^email$/i ) {
                 my $html = $cell ? "<a href='mailto:$cell'>$cell</a>" : "";
                 $cell = {
                     "display" => $html,
@@ -335,27 +337,25 @@ sub search {
                 # try to render it for display
                 my $fieldDef = $formDef->getField($propertyName) if $formDef;
 
+
                 if ($fieldDef) {
 
-           # patch in a random field name so that they are different on each row
-           # required for older JQueryPlugins
-                    my $oldFieldName = $fieldDef->{name};
-                    $fieldDef->{name} .= int( rand(10000) ) + 1;
+                  # patch in a random field name so that they are different on each row
+                  # required for older JQueryPlugins
+                  my $oldFieldName = $fieldDef->{name};
+                  $fieldDef->{name} .= int(rand(10000)) + 1;
 
-                    if ( $fieldDef->can("getDisplayValue") ) {
-                        $html = $fieldDef->getDisplayValue($cell);
-                    }
-                    else {
-                        $html =
-                          $fieldDef->renderForDisplay( '$value(display)',
-                            $cell, undef, $params{web}, $topic );
-                    }
-                    $html =
-                      Foswiki::Func::expandCommonVariables( $html, $topic,
-                        $params{web} );
+                  if ($fieldDef->can("getDisplayValue")) {
+                    $html = $fieldDef->getDisplayValue($cell);
+                  } else {
+                    $html = $fieldDef->renderForDisplay('$value(display)', $cell, undef, $params{web}, $topic);
+                  }
 
-               # restore original name in form definition to prevent sideeffects
-                    $fieldDef->{name} = $oldFieldName;
+                  $html = Foswiki::Func::expandCommonVariables($html, $topic, $params{web});
+                  $html = Foswiki::Func::renderText($html, $params{web}, $topic);
+
+                  # restore original name in form definition to prevent sideeffects
+                  $fieldDef->{name} = $oldFieldName;
                 }
 
                 $cell = {

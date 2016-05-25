@@ -15,7 +15,7 @@ sub new {
         $class->SUPER::new(
             $session,
             name         => 'DataTablesFixedColumns',
-            version      => '3.2.1',
+            version      => '3.2.2',
             author       => 'SpryMedia Ltd',
             homepage     => 'http://datatables.net/',
             puburl       => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',

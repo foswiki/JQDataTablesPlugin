@@ -1,11 +1,11 @@
-/*! ColReorder 1.3.1
+/*! ColReorder 1.3.2
  * ©2010-2015 SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     ColReorder
  * @description Provide the ability to reorder columns in a DataTable
- * @version     1.3.1
+ * @version     1.3.2
  * @file        dataTables.colReorder.js
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
  * @contact     www.sprymedia.co.uk/contact
@@ -124,9 +124,10 @@ function fnDomSwitch( nParent, iFrom, iTo )
  *  @param   int iTo and insert it into this point
  *  @param   bool drop Indicate if the reorder is the final one (i.e. a drop)
  *    not a live reorder
+ *  @param   bool invalidateRows speeds up processing if false passed
  *  @returns void
  */
-$.fn.dataTableExt.oApi.fnColReorder = function ( oSettings, iFrom, iTo, drop )
+$.fn.dataTableExt.oApi.fnColReorder = function ( oSettings, iFrom, iTo, drop, invalidateRows )
 {
 	var i, iLen, j, jLen, jen, iCols=oSettings.aoColumns.length, nTrs, oCol;
 	var attrMap = function ( obj, prop, mapping ) {
@@ -328,9 +329,10 @@ $.fn.dataTableExt.oApi.fnColReorder = function ( oSettings, iFrom, iTo, drop )
 		}
 	}
 
-	// Invalidate row cached data for sorting, filtering etc
-	var api = new $.fn.dataTable.Api( oSettings );
-	api.rows().invalidate();
+	if ( invalidateRows || invalidateRows === undefined )
+	{
+		$.fn.dataTable.Api( oSettings ).rows().invalidate();
+	}
 
 	/*
 	 * Update DataTables' event handlers
@@ -357,7 +359,6 @@ $.fn.dataTableExt.oApi.fnColReorder = function ( oSettings, iFrom, iTo, drop )
 		aiInvertMapping: aiInvertMapping
 	} ] );
 };
-
 
 /**
  * ColReorder provides column visibility control for DataTables
@@ -778,11 +779,13 @@ $.extend( ColReorder.prototype, {
 				fnArraySwitch( a, currIndex, i );
 
 				/* Do the column reorder in the table */
-				this.s.dt.oInstance.fnColReorder( currIndex, i, true );
+				this.s.dt.oInstance.fnColReorder( currIndex, i, true, false );
 
 				changed = true;
 			}
 		}
+
+		$.fn.dataTable.Api( this.s.dt ).rows().invalidate();
 
 		this._fnSetColumnIndexes();
 
@@ -799,7 +802,7 @@ $.extend( ColReorder.prototype, {
 
 		/* Save the state */
 		this.s.dt.oInstance.oApi._fnSaveState( this.s.dt );
-		
+
 		if ( this.s.reorderCallback !== null )
 		{
 			this.s.reorderCallback.call( this );
@@ -1058,7 +1061,7 @@ $.extend( ColReorder.prototype, {
 		} );
 
 		var iToPoint = 0;
-		var total = $(aoColumns[0].nTh).offset().left; // Offset of the first column
+		var total = this.s.aoTargets[0].x;
 
 		for ( var i=0, iLen=aoColumns.length ; i<iLen ; i++ )
 		{
@@ -1239,7 +1242,7 @@ ColReorder.defaults = {
  *  @type      String
  *  @default   As code
  */
-ColReorder.version = "1.3.1";
+ColReorder.version = "1.3.2";
 
 
 

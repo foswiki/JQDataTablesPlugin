@@ -15,7 +15,7 @@ sub new {
         $class->SUPER::new(
             $session,
             name         => 'DataTablesResponsive',
-            version      => '2.0.2',
+            version      => '2.1.0',
             author       => 'SpryMedia Ltd',
             homepage     => 'http://datatables.net/',
             puburl       => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',
