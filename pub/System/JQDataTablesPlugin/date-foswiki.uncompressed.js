@@ -15,14 +15,20 @@
 
   // convert to a foswiki date string to a number which we can use to sort
   function dateToOrd(string) {
-    string = string.replace("&nbsp;", "").replace(/-/, "").replace(/^ | $/g, "");
-
-    if (string === "") {
-      return 0; // an empty string is an invalid Date 
+    if (typeof(string) === 'number') {
+      return string;
     }
 
-    if (!mon.test(string)) { // prevent simple numerics <= 12 to be detected as dates
-      return NaN;
+    if (typeof(string) === 'string') {
+      string = string.replace("&nbsp;", "").replace(/-/, "").replace(/^ | $/g, "");
+
+      if (string === "") {
+        return 0; // an empty string is an invalid Date 
+      }
+
+      if (!mon.test(string)) { // prevent simple numerics <= 12 to be detected as dates
+        return NaN;
+      }
     }
 
     return (new Date(string)).getTime();

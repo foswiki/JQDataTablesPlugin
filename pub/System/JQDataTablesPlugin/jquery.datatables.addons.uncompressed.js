@@ -15,14 +15,20 @@
 
   // convert to a foswiki date string to a number which we can use to sort
   function dateToOrd(string) {
-    string = string.replace("&nbsp;", "").replace(/-/, "").replace(/^ | $/g, "");
-
-    if (string === "") {
-      return 0; // an empty string is an invalid Date 
+    if (typeof(string) === 'number') {
+      return string;
     }
 
-    if (!mon.test(string)) { // prevent simple numerics <= 12 to be detected as dates
-      return NaN;
+    if (typeof(string) === 'string') {
+      string = string.replace("&nbsp;", "").replace(/-/, "").replace(/^ | $/g, "");
+
+      if (string === "") {
+        return 0; // an empty string is an invalid Date 
+      }
+
+      if (!mon.test(string)) { // prevent simple numerics <= 12 to be detected as dates
+        return NaN;
+      }
     }
 
     return (new Date(string)).getTime();
@@ -260,18 +266,18 @@ jQuery(function($) {
         '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"i>';
     } else {
       $.fn.dataTable.defaults.dom =
-        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"pfr>'+
+        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"frl>'+
         't'+
-        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"il>';
+        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"ip>';
     }
 
 
     if (opts.searchMode === 'multi') {
       // remove global filter filed in multi search ... is there an easier way to do this???
       opts.dom =
-        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"pr>'+
+        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"rl>'+
         't'+
-        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"il>';
+        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"ip>';
     }
 
     $container.addClass("jqDataTablesContainerInited").find("table").each(function() {

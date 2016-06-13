@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1464185981" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1465808847" format="1.1"  version="1"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -191,8 +191,9 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
-|  25 May 2015: | updated to latest version of !DataTables |
-|  22 Apr 2015: | implemented server-side grid widget |
+|  13 Jun 2016: | fixed parsing of dates that are already epoch seconds; improved default settings of table layout |
+|  25 May 2016: | updated to latest version of !DataTables |
+|  22 Apr 2016: | implemented server-side grid widget |
 |  18 Mar 2014: | remove =console.log()= leftover; improve sorting date columns |
 |  09 Nov 2013: | implemented sorting for currency, and metrics |
 |  08 Nov 2013: | make it work under ={NoConflict}=; \

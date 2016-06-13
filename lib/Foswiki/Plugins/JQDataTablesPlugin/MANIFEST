@@ -69,8 +69,6 @@ pub/System/JQDataTablesPlugin/ColReorder/css/colReorder.jqueryui.css 0644
 pub/System/JQDataTablesPlugin/ColReorder/css/colReorder.jqueryui.min.css 0644
 pub/System/JQDataTablesPlugin/ColReorder/js/dataTables.colReorder.js 0644
 pub/System/JQDataTablesPlugin/ColReorder/js/dataTables.colReorder.min.js 0644
-pub/System/JQDataTablesPlugin/currency.js 0644
-pub/System/JQDataTablesPlugin/currency.js.gz 0644
 pub/System/JQDataTablesPlugin/currency.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/DataTables/css/dataTables.bootstrap.css 0644
 pub/System/JQDataTablesPlugin/DataTables/css/dataTables.bootstrap.min.css 0644
@@ -94,8 +92,6 @@ pub/System/JQDataTablesPlugin/DataTables/js/dataTables.jqueryui.js 0644
 pub/System/JQDataTablesPlugin/DataTables/js/dataTables.jqueryui.min.js 0644
 pub/System/JQDataTablesPlugin/DataTables/js/jquery.dataTables.js 0644
 pub/System/JQDataTablesPlugin/DataTables/js/jquery.dataTables.min.js 0644
-pub/System/JQDataTablesPlugin/date-foswiki.js 0644
-pub/System/JQDataTablesPlugin/date-foswiki.js.gz 0644
 pub/System/JQDataTablesPlugin/date-foswiki.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/FixedColumns/css/fixedColumns.bootstrap.css 0644
 pub/System/JQDataTablesPlugin/FixedColumns/css/fixedColumns.bootstrap.min.css 0644
@@ -123,8 +119,6 @@ pub/System/JQDataTablesPlugin/jquery.datatables.addons.js.gz 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.addons.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.css 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.css.gz 0644
-pub/System/JQDataTablesPlugin/jquery.datatables.init.js 0644
-pub/System/JQDataTablesPlugin/jquery.datatables.init.js.gz 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.init.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.js.patch 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.uncompressed.css 0644
@@ -141,8 +135,6 @@ pub/System/JQDataTablesPlugin/KeyTable/css/keyTable.jqueryui.min.css 0644
 pub/System/JQDataTablesPlugin/KeyTable/js/dataTables.keyTable.js 0644
 pub/System/JQDataTablesPlugin/KeyTable/js/dataTables.keyTable.min.js 0644
 pub/System/JQDataTablesPlugin/Makefile 0644
-pub/System/JQDataTablesPlugin/metrics.js 0644
-pub/System/JQDataTablesPlugin/metrics.js.gz 0644
 pub/System/JQDataTablesPlugin/metrics.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/pdfmake/build/pdfmake.js 0644
 pub/System/JQDataTablesPlugin/pdfmake/build/pdfmake.min.js 0644
