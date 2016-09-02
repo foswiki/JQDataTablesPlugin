@@ -191,6 +191,7 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  02 Sep 2016: | added default english translation files |
 |  13 Jun 2016: | fixed parsing of dates that are already epoch seconds; improved default settings of table layout |
 |  25 May 2016: | updated to latest version of !DataTables |
 |  22 Apr 2016: | implemented server-side grid widget |

@@ -1,6 +1,7 @@
 *.gz
 *.swp
 attic
+genpdf_*
 /JQDataTablesPlugin_installer
 /JQDataTablesPlugin_installer.pl
 /JQDataTablesPlugin.md5

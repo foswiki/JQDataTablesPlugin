@@ -14,14 +14,18 @@ jQuery(function($) {
     "stripeClasses": ['foswikiTableEven', 'foswikiTableOdd'],
 
     "language": {
-      "search": "<b class='i18n' data-i18n-message='Search:'>Search:</b>",
+      "search": "<b class='i18n' data-i18n-message='search'>Search:</b>",
       "info": "_START_ - _END_ of <b>_TOTAL_</b>",
-      "infoEmpty": "<span class='foswikiAlert i18n' data-i18n-message='nothing found'>nothing found</span>",
+      "infoEmpty": "<span class='foswikiAlert i18n' data-i18n-message='infoEmpty'>nothing found</span>",
       "infoFiltered": "",
-      "lengthMenu": "<b class='i18n' data-i18n-message='Results per page:'>Results per page:</b> _MENU_",
+      "lengthMenu": "<b class='i18n' data-i18n-message='lengthMenu'>Results per page:</b> _MENU_",
+      "emptyTable": "<span class='i18n' data-i18n-message='emptyTable'>No data available in table</span>",
+      "loadingRecords": "<span class='i18n' data-i18n-message='loadingRecords'>Loading ...</span>",
+      "processing": "<span class='i18n' data-i18n-message='processing'>Processing ...</span>",
+      "zeroRecords": "<span class='i18n' data-i18n-message='zeroRecords'>No matching records found</span>",
       "paginate": {
-        "previous": "<span class='i18n' data-i18n-message='Previous'>Previous</span>",
-        "next": "<span class='i18n' data-i18n-message='Next'>Next</span>"
+        "previous": "<span class='i18n' data-i18n-message='previous'>Previous</span>",
+        "next": "<span class='i18n' data-i18n-message='next'>Next</span>"
       }
     }
   });
