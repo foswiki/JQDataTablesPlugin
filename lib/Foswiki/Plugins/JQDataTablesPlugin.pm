@@ -12,8 +12,8 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '3.02';
-our $RELEASE = '02 Sep 2016';
+our $VERSION = '3.03';
+our $RELEASE = '23 Jan 2017';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 
 sub initPlugin {
@@ -66,13 +66,13 @@ sub restConnector {
     || $Foswiki::cfg{JQDataTablesPlugin}{ExternalConnectors}{$connectorID};
 
   unless ($connectorClass) {
-    printRESTResult($response, 500, "ERROR: unknown connector $connectorID");
+    printRESTResult($response, 500, "ERROR: unknown connector");
     return '';
   }
 
   eval "require $connectorClass";
   if ($@) {
-    printRESTResult($response, 500, "ERROR: loading connector $connectorID - $@");
+    printRESTResult($response, 500, "ERROR: loading connector");
     return '';
   }
 
@@ -113,7 +113,7 @@ sub printRESTResult {
 __END__
 Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 
-JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2016 Michael Daum http://michaeldaumconsulting.com
+JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2017 Michael Daum http://michaeldaumconsulting.com
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

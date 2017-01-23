@@ -3,8 +3,8 @@
   "infoEmpty": "nichts gefunden",
   "lengthMenu": "Ergebnisse pro Seite:",
   "loadingRecords": "Lade ...",
-  "next": "Weiter",
-  "previous": "Zurück",
+  "next": "weiter",
+  "previous": "zurück",
   "processing": "In Bearbeitung ...",
   "search": "Suchen:",
   "zeroRecords": "Keine passenden Daten gefunden"
