@@ -14,7 +14,7 @@ jQuery(function($) {
     "stripeClasses": ['foswikiTableEven', 'foswikiTableOdd'],
 
     "language": {
-      "search": "<b class='i18n' data-i18n-message='search'>Search:</b>",
+      "search": "<b class='i18n' data-i18n-message='filter'>Filter:</b>",
       "info": "_START_ - _END_ of <b>_TOTAL_</b>",
       "infoEmpty": "<span class='foswikiAlert i18n' data-i18n-message='infoEmpty'>nothing found</span>",
       "infoFiltered": "",

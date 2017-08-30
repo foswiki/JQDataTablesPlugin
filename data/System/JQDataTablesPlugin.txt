@@ -76,8 +76,10 @@ the formfield. There are however a few column names that have a special meaning 
    * =Date=, =Changed=, =Modified=, =Created=, =info.date=, =createdate=: these fields are all date fields and treated accordingly 
    * =Topic=: alias for =topic=
    * =TopicTitle=: displays the !TopicTitle of a topic linking to it 
-   * =By=, =Author=: alias for author of recent topic revision
-   * =Creator=: author if the initial topic revision
+   * =By=: alias for author of recent topic revision
+   * =Creator=, =createauthor=, =info.author=: author if the initial topic revision
+   * =publishauthor=: author that published the topic, defaults to =createauthor= in case there is no explicit =Author= field in the form
+   * =publishdate=: date when the =publishauthor= created the initial revision, defaults to =createdate= in case there is no explicut =PublishDate= field in the form
    * =Worflow=: name of the workflow assigned to a topic
    * A column name starting with a =/= (slash) will be excluded from any special treatment, i.e. =/Author= will _not_ be interpreted as the author of the recent topic revision, but as the =Author= formfield of a !DataForm (see below example).
 
@@ -191,6 +193,7 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  30 Aug 2017: | disabled =Author= auto-column; added =publishdate= and =publishauthor= auto-columns |
 |  23 Jan 2017: | don't report back an url parameter in the error message |
 |  02 Sep 2016: | added default english translation files |
 |  13 Jun 2016: | fixed parsing of dates that are already epoch seconds; improved default settings of table layout |

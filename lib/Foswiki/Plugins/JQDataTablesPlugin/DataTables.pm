@@ -65,7 +65,10 @@ sub handleDataTable {
   $theWidth = defined($theWidth) ? "width='$theWidth'" : "";
 
   my $theWeb = $params->{web} || $web;
+  my $theTopic = $params->{topic} || $topic;
   my $theForm = $params->{form} || '';
+
+  my ($thisWeb, $thisTopic) = Foswiki::Func::normalizeWebTopicName($theWeb, $theTopic);
 
   my $thePaging =
     Foswiki::Func::isTrue($params->{paging} || $params->{pager}, 0)
@@ -300,7 +303,7 @@ sub handleDataTable {
     data => {
       t => $time,
       form => $formParam,
-      topic => "$theWeb.WebHome",
+      topic => "$thisWeb.$thisTopic",
       web => $theWeb,
       connector => $connector,
     },

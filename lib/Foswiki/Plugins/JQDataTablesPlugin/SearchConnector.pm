@@ -108,7 +108,7 @@ sub buildQuery {
   $form =~ s/\//./g;
 
   my @query = ();
-  push @query, "form='$form'" if $form;
+  push @query, "form.name='$form'" if $form;
 
   my @columns = $this->getColumnsFromRequest($request);
 

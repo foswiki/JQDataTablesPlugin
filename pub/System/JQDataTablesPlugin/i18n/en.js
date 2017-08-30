@@ -6,7 +6,7 @@
   "next": "Next",
   "previous": "Previous",
   "processing": "Processing",
-  "search": "Search",
+  "filter": "Filter:",
   "zeroRecords": "No records found"
 }
 

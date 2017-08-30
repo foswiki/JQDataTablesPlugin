@@ -6,6 +6,6 @@
   "next": "weiter",
   "previous": "zurück",
   "processing": "In Bearbeitung ...",
-  "search": "Suchen:",
+  "filter": "Filter:",
   "zeroRecords": "Keine passenden Daten gefunden"
 }

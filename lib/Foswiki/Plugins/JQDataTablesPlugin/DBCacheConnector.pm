@@ -64,7 +64,7 @@ sub new {
     'info.date' => 'Changed',
     'Changed' => 'info.date',
     'By' => 'info.author',
-    'Author' => 'info.author',
+#    'Author' => 'info.author', SMELL: this may be in conflict with any formfield of that name
     'Workflow' => 'workflow.name',
     'workflow.name' => 'Workflow',
     'Created' => 'createdate',
@@ -236,7 +236,7 @@ sub search {
           "display" => "<span class='rowNumber'>$index</span>",
           "raw" => $index,
         };
-      } elsif (!$isEscaped && $propertyName =~ /^(Date|Changed|Modified|Created|info\.date|createdate)$/) {
+      } elsif (!$isEscaped && $propertyName =~ /^(Date|Changed|Modified|Created|info\.date|createdate|publishdate)$/) {
         my $html =
           $cell
           ? "<span style='white-space:nowrap'>" . Foswiki::Time::formatTime($cell) . "</span>"
@@ -256,25 +256,27 @@ sub search {
           "display" => "<a href='" . Foswiki::Func::getViewUrl($params{web}, $topic) . "'>$cell</a>",
           "raw" => $cell,
         };
-      } elsif (!$isEscaped && $propertyName =~ /^(Author|Creator|info\.author|createauthor)$/) {
-        my $topicTitle = Foswiki::Plugins::DBCachePlugin::getTopicTitle($Foswiki::cfg{UsersWebName}, $cell)
-          || $cell;
-        my $html =
-          $cell
-          ? "<a href='" . Foswiki::Func::getViewUrl($Foswiki::cfg{UsersWebName}, $cell) . "' style='white-space:nowrap'>$topicTitle</a>"
-          : "";
+      } elsif (!$isEscaped && $propertyName =~ /^(Author|Creator|info\.author|createauthor|publishauthor)$/) {
+        my @html = ();
+        foreach my $item (split(/\s*,\s*/, $cell)) {
+          my $topicTitle = Foswiki::Plugins::DBCachePlugin::getTopicTitle($Foswiki::cfg{UsersWebName}, $item);
+          push @html, 
+            $topicTitle eq $item ?
+            $item :
+            "<a href='" . Foswiki::Func::getViewUrl($Foswiki::cfg{UsersWebName}, $item) . "' style='white-space:nowrap'>$topicTitle</a>";
+        }
         $cell = {
-          "display" => $html,
+          "display" => join(", ", @html),
           "raw" => $cell || "",
         };
       } elsif (!$isEscaped && $propertyName =~ /(Image|Photo|Logo)/) {
         my $url = $cell;
+
         unless ($url =~ /^(http:)|\//) {
           $url = Foswiki::Func::getPubUrlPath($params{web}, $topic, $cell);
         }
         $url =~ s/%PUBURLPATH%/$Foswiki::cfg{PubUrlPath}/g;
 
-        #$url =~ s/^https?://g;
         my $html =
           $cell
           ? "<img src='$url' style='max-width:100%;max-height:5em' />"
