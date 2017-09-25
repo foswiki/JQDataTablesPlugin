@@ -319,7 +319,7 @@ sub handleDataTable {
   $html5Data = join(" ", @$html5Data);
   my $result = <<"HERE";
 <literal>
-<div class='jqDataTablesContainer' $html5Data' >
+<div class='jqDataTablesContainer' $html5Data>
 <table class='foswikiTable $theClass' $theWidth>
   <thead>$thead</thead>
   <tbody>

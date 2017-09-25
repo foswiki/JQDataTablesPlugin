@@ -193,6 +193,7 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  25 Sep 2017: | fixed html5 data attributes |
 |  30 Aug 2017: | disabled =Author= auto-column; added =publishdate= and =publishauthor= auto-columns |
 |  23 Jan 2017: | don't report back an url parameter in the error message |
 |  02 Sep 2016: | added default english translation files |

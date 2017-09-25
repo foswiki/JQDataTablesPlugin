@@ -156,7 +156,6 @@ sub buildQuery {
       } else {
         push(@includeFilter, "lc($propertyName)" . ($regexFlag ? "=~" : "~") . "lc('$part')");
       }
-
     }
 
     push @query, "(" . join(" AND ", @includeFilter) . ")"
@@ -192,7 +191,7 @@ sub search {
 
   my $sort = $this->column2Property($params{sort});
   my $hits = $db->dbQuery($params{query}, undef, $sort, $params{reverse});
-  return (0, 0, ()) unless $hits;
+  return (0, 0, []) unless $hits;
 
   my $total = scalar($db->getKeys());
   my $totalFiltered = $hits->count;

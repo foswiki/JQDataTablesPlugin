@@ -12,8 +12,8 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '3.10';
-our $RELEASE = '30 Aug 2017';
+our $VERSION = '3.11';
+our $RELEASE = '25 Sep 2017';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 
 sub initPlugin {
@@ -73,6 +73,7 @@ sub restConnector {
   eval "require $connectorClass";
   if ($@) {
     printRESTResult($response, 500, "ERROR: loading connector");
+    #print STDERR "ERROR loading connector $connectorClass: $@\n";
     return '';
   }
 
