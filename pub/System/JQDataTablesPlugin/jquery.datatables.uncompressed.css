@@ -240,8 +240,8 @@ table.dataTable tbody > tr.selected,
 table.dataTable tbody > tr.selected > td,
 table.dataTable tbody > tr.selected > td > a,
 table.dataTable tbody > tr > .selected {
-  color:#599E00;
-  background: #efffd8;
+  color:#599E00 !important;
+  background: #efffd8 !important;
 }
 
 @media screen and (max-width: 767px) {

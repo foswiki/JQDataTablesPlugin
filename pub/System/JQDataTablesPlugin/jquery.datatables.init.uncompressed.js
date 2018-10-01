@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 jQuery(function($) {
 
   $.extend($.fn.dataTable.defaults, {
@@ -8,6 +8,7 @@ jQuery(function($) {
     "lengthChange": false,
     "paging": false,
     "processing": true,
+    "stateDuration": -1,
 
     //"pagingType": "full_numbers",
     "lengthMenu": [ 5, 10, 25, 50, 100 ],
@@ -73,6 +74,10 @@ jQuery(function($) {
   $('.jqDataTablesContainer').livequery(function() {
     var $container = $(this), 
         opts = $.extend({}, $container.metadata(), $container.data());
+
+    if (opts.dateTimeFormat) {
+      $.fn.dataTable.moment(opts.dateTimeFormat, opts.dateTimeLocale);
+    }
 
     if (opts.scroller) {
       $.fn.dataTable.defaults.dom =

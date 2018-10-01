@@ -12,8 +12,8 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '3.11';
-our $RELEASE = '25 Sep 2017';
+our $VERSION = '4.00';
+our $RELEASE = '01 Oct 2018';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 
 sub initPlugin {
@@ -114,7 +114,7 @@ sub printRESTResult {
 __END__
 Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 
-JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2017 Michael Daum http://michaeldaumconsulting.com
+JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2018 Michael Daum http://michaeldaumconsulting.com
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

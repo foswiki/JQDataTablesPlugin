@@ -193,6 +193,7 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  01 Oct 2018: | use !JQMomentContrib for better parsing and sorting of date columns on the client side; make use of new !TopicTitlePlugin; add support for !MultiLingualPlugin |
 |  25 Sep 2017: | fixed html5 data attributes |
 |  30 Aug 2017: | disabled =Author= auto-column; added =publishdate= and =publishauthor= auto-columns |
 |  23 Jan 2017: | don't report back an url parameter in the error message |
@@ -219,7 +220,7 @@ Click on the table headers to sort the columns according to their data type.
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="2012 SvenDowideit@fosiki.com, 2013-2017 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="Copyright" title="Copyright" value="2012 SvenDowideit@fosiki.com, 2013-2018 Michael Daum http://michaeldaumconsulting.com"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
 %META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25TOPIC%25"}%
 %META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25TOPIC%25"}%

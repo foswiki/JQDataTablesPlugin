@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2016-2017 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2016-2018 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -288,7 +288,7 @@ sub search {
           "raw" => $topic,
         };
       } elsif (!$isEscaped && $propertyName eq 'TopicTitle') {
-        my $topicTitle = $this->getTopicTitle($web, $topic, $topicObj);
+        my $topicTitle = Foswiki::Func::getTopicTitle($web, $topic, undef, $topicObj);
         $cell = {
           "display" => "<a href='" . Foswiki::Func::getViewUrl($web, $topic) . "'>$topicTitle</a>",
           "raw" => $topicTitle,
@@ -296,7 +296,7 @@ sub search {
       } elsif (!$isEscaped && $propertyName eq "wikiname") {
         my $info = $topicObj->getRevisionInfo();
         my $author = Foswiki::Func::getWikiName($info->{author}) || '';
-        my $topicTitle = $this->getTopicTitle($Foswiki::cfg{UsersWebName}, $author, $topicObj);
+        my $topicTitle = Foswiki::Func::getTopicTitle($Foswiki::cfg{UsersWebName}, $author, undef, $topicObj);
         my $html = "<a href='" . Foswiki::Func::getViewUrl($Foswiki::cfg{UsersWebName}, $author) . "' style='white-space:nowrap'>$topicTitle</a>";
         $cell = {
           "display" => $html,
@@ -305,7 +305,7 @@ sub search {
       } elsif (!$isEscaped && $propertyName eq "createinfo.author") {
         my @info = Foswiki::Func::getRevisionInfo($web, $topic, 1);
         my $author = $info[1] || '';
-        my $topicTitle = $this->getTopicTitle($Foswiki::cfg{UsersWebName}, $author, $topicObj);
+        my $topicTitle = Foswiki::Func::getTopicTitle($Foswiki::cfg{UsersWebName}, $author, undef, $topicObj);
         my $html = "<a href='" . Foswiki::Func::getViewUrl($Foswiki::cfg{UsersWebName}, $author) . "' style='white-space:nowrap'>$topicTitle</a>";
         $cell = {
           "display" => $html,

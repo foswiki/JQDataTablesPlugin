@@ -26,7 +26,7 @@ sub new {
       css => ['jquery.datatables.css'],
       javascript => ['DataTables/js/jquery.dataTables.min.js', 'jquery.datatables.addons.js'],
       i18n => $Foswiki::cfg{SystemWebName} . "/JQDataTablesPlugin/i18n",
-      dependencies => ['metadata', 'livequery', 'i18n'],
+      dependencies => ['metadata', 'livequery', 'i18n', 'moment'],
       summary => <<SUMMARY), $class);
 !DataTables is a plug-in for the jQuery Javascript library. It is a highly
 flexible tool, based upon the foundations of progressive enhancement, which
@@ -95,6 +95,12 @@ sub handleDataTable {
 
   my $theReverse = Foswiki::Func::isTrue($params->{reverse}, 0) ? 'desc' : 'asc';
 
+  my $theSaveState = Foswiki::Func::isTrue($params->{savestate}, 0) ? 'true' : 'false';
+  if ($theSaveState eq 'true') {
+    $this->_push($html5Data, "state-save", $theSaveState);
+    $this->_push($html5Data, "state-duration", -1); # use session store
+  }
+
   my $theInfo = Foswiki::Func::isTrue($params->{info}, 0) ? 'true' : 'false';
   $this->_push($html5Data, "info", $theInfo);
 
@@ -123,16 +129,6 @@ sub handleDataTable {
 
   my $thePageLength = $params->{rows} || $params->{pagelength};
   $this->_push($html5Data, "page-length", $thePageLength) if $thePageLength;
-
-  my @columnFields = ();
-  my $formParam = '';
-
-  my $theCols = $params->{columns};
-  if ($theCols) {
-    foreach my $fieldName (split(/\s*,\s*/, $theCols)) {
-      push @columnFields, $fieldName;
-    }
-  }
 
   my $theSelecting = Foswiki::Func::isTrue($params->{selecting}, 0);
   my $theSelectMode = $params->{selectmode} || "multi";
@@ -170,28 +166,44 @@ sub handleDataTable {
     $this->_push($html5Data, "fixed-header", "true");
   }
 
+  my $formDef;
+  my $formParam = '';
+
   if ($theForm) {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName($theWeb, $theForm);
     $formWeb =~ s/\//./g;
 
-    my $form;
     my $error;
     my $session = $this->{session} || $Foswiki::Plugins::SESSION;
     try {
-      $form = new Foswiki::Form($session, $formWeb, $formTopic);
+      $formDef = new Foswiki::Form($session, $formWeb, $formTopic);
     }
     catch Foswiki::OopsException with {
       $error = "<div class='foswikiAlert'>ERROR: form $formWeb.$formTopic not found.</div>";
     };
     return $error if $error;
-    if ($form && !$theCols) {
-      @columnFields = map { $_->{name} } @{$form->getFields()};
-
-      #unshift @columnFields, "Topic";
-    }
-
     $formParam = $formTopic;
   }
+
+  my @columnFields = ();
+
+  my $theCols = $params->{columns};
+  if ($formDef) {
+    if ($theCols) {
+      foreach my $fieldName (split(/\s*,\s*/, $theCols)) {
+        push @columnFields, $formDef->getField($fieldName) || $fieldName;
+      }
+    } else {
+      @columnFields = @{$formDef->getFields()};
+    }
+  } else {
+    if ($theCols) {
+      foreach my $fieldName (split(/\s*,\s*/, $theCols)) {
+        push @columnFields, $fieldName;
+      }
+    }
+  }
+
 
   my @thead = ();
 
@@ -202,7 +214,7 @@ sub handleDataTable {
   push @thead, "<tr>";
   my $index = 0;
 
-  unless (grep { /^($theSelectProperty)$/i } @columnFields) {
+  unless (grep { my $fieldName = ref($_) ? $_->{name}:$_; $fieldName =~ /^($theSelectProperty)$/i } @columnFields) {
     push @columns,
       {
       data => $theSelectProperty,
@@ -217,6 +229,7 @@ sub handleDataTable {
   if ($theSelecting) {
     push @columns,
       {
+      name => "null",
       data => "null",
       searchable => JSON::false,
       orderable => JSON::false,
@@ -227,7 +240,14 @@ sub handleDataTable {
   }
 
   my $order = [[0, $theReverse]];    # default
-  foreach my $fieldName (@columnFields) {
+  foreach my $fieldDef (@columnFields) {
+    my $fieldName;
+    if (ref($fieldDef)) {
+      $fieldName = $fieldDef->{name};
+    } else {
+      $fieldName = $fieldDef;
+      $fieldDef = undef;
+    }
     push @thead, "<th>$fieldName</th>";
     my $col = {
       "data" => $fieldName,

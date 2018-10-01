@@ -1,1 +1,5 @@
 Foswiki::Plugins::JQueryPlugin, >= 4.10, perl, Required
+Foswiki::Contrib::JQMomentContrib, >= 3.00, perl, Required
+Foswiki::Plugins::MultiLingualPlugin, >= 4.00, perl, Optional
+ONLYIF ( $Foswiki::Plugins::VERSION < 2.6)
+Foswiki::Plugins::TopicTitlePlugin,>1.00,perl,Required for Foswiki < 2.2

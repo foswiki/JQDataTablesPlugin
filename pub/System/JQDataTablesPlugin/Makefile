@@ -2,10 +2,11 @@ FOSWIKI_ROOT?=~/foswiki/core
 TARGET=jquery.datatables.addons.js jquery.datatables.css
 
 ADDONS_SOURCE=\
-        date-foswiki.uncompressed.js \
-        currency.uncompressed.js \
-        metrics.uncompressed.js \
-        jquery.datatables.init.uncompressed.js
+  date-foswiki.uncompressed.js \
+  datetime-moment.uncompressed.js \
+  currency.uncompressed.js \
+  metrics.uncompressed.js \
+  jquery.datatables.init.uncompressed.js
 
 
 -include $(FOSWIKI_ROOT)/pub/System/JQueryPlugin/Makefile.include

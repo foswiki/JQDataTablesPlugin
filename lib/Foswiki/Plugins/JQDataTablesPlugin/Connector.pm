@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2017 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2018 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -90,6 +90,7 @@ sub restHandleSearch {
   my $echo = $request->param("draw") || 0;
   my $skip = $request->param("start") || 0;
   my $limit = $request->param("length") || 10;
+  my $form = $request->param("form");
   my $web = $request->param('web') || $this->{session}->{webName};
   $web = Foswiki::Sandbox::untaint($web, \&Foswiki::Sandbox::validateWebName);
 
@@ -102,7 +103,7 @@ sub restHandleSearch {
 
   my @columns = $this->getColumnsFromRequest($request);
   foreach my $column (@columns) {
-    my $fieldName = $column->{data};
+    my $fieldName = $column->{name};
     $sort = $fieldName
       if ($request->param("order[0][column]") || 0) eq $i;
     $reverse = "on" if ($request->param("order[0][dir]") || "") eq "desc";
@@ -122,6 +123,7 @@ sub restHandleSearch {
     fields => \@fields,
     limit => $limit,
     skip => $skip,
+    form => $form,
   );
 
   my $result = {
@@ -199,6 +201,34 @@ sub urlDecode {
   my $text = shift;
   $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
   return $text;
+}
+
+=begin TML
+
+---++ ClassMethod translate($string, $web, $topic) -> $string
+
+translate string to user's current language
+
+=cut
+
+sub translate {
+  my ($this, $string, $web, $topic) = @_;
+
+  my $result = $string;
+
+  $string =~ s/^_+//; # strip leading underscore as maketext doesnt like it
+
+  my $context = Foswiki::Func::getContext();
+  if ($context->{'MultiLingualPluginEnabled'}) {
+    require Foswiki::Plugins::MultiLingualPlugin;
+    $result = Foswiki::Plugins::MultiLingualPlugin::translate($string, $web, $topic);
+  } else {
+    $result = $this->{session}->i18n->maketext($string);
+  }
+
+  $result //= $string;
+
+  return $result;
 }
 
 1;

@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2017 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2018 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -126,41 +126,6 @@ sub restHandleSave {
 
   # any exceptions are catched by the calling code
   Foswiki::Func::saveTopic($web, $topic, $meta, $text);
-}
-
-=begin TML
-
-get the topic title 
-
-=cut
-
-sub getTopicTitle {
-  my ($this, $web, $topic, $meta) = @_;
-
-  my $topicTitle = '';
-
-  ($meta) = Foswiki::Func::readTopic($web, $topic) unless $meta;
-
-  my $field = $meta->get('FIELD', 'TopicTitle');
-  $topicTitle = $field->{value} if $field && $field->{value};
-
-  unless ($topicTitle) {
-    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
-    $topicTitle = $field->{value} if $field && $field->{value};
-  }
-
-  if (!defined($topicTitle) || $topicTitle eq '') {
-    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
-      $topicTitle = $web;
-    } else {
-      $topicTitle = $topic;
-    }
-  }
-
-  # bit of cleanup
-  $topicTitle =~ s/<!--.*?-->//g;
-
-  return $topicTitle;
 }
 
 1;

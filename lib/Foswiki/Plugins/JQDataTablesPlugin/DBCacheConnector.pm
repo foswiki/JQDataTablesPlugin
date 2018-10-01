@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2017 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2018 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -71,6 +71,7 @@ sub new {
     'createdate' => 'Created',
     'Creator' => 'createauthor',
     'creatauthor' => 'Creator',
+    'CategoryTitle' => '@Category.TopicTitle'
   };
 
   return $this;
@@ -187,9 +188,8 @@ sub search {
   my $db = Foswiki::Plugins::DBCachePlugin::getDB($params{web});
   throw Error::Simple("can't load dbcache") unless defined $db;
 
-  my @result = ();
-
   my $sort = $this->column2Property($params{sort});
+
   my $hits = $db->dbQuery($params{query}, undef, $sort, $params{reverse});
   return (0, 0, []) unless $hits;
 
@@ -227,8 +227,13 @@ sub search {
       next if !$propertyName || $propertyName eq '#';
 
       my $isEscaped = substr($fieldName, 0, 1) eq '/' ? 1 : 0;
+      my $fieldDef;
+      $fieldDef = $formDef->getField($propertyName) if $formDef;
 
       my $cell = $db->expandPath($topicObj, $propertyName);
+      if (!defined($cell) || $cell eq '') {
+        $cell = $fieldDef->getDefaultValue() if $fieldDef;
+      }
 
       if (!$isEscaped && $propertyName eq 'index') {
         $cell = {
@@ -236,14 +241,34 @@ sub search {
           "raw" => $index,
         };
       } elsif (!$isEscaped && $propertyName =~ /^(Date|Changed|Modified|Created|info\.date|createdate|publishdate)$/) {
-        my $html =
-          $cell
-          ? "<span style='white-space:nowrap'>" . Foswiki::Time::formatTime($cell) . "</span>"
-          : "";
+        my $time = "";
+        my $html = "";
+        if ($cell) {
+          $time = Foswiki::Time::formatTime($cell);
+          $html = "<span style='white-space:nowrap'>$time</span>";
+        }
         $cell = {
           "display" => $html,
           "epoch" => $cell || 0,
-          "raw" => Foswiki::Time::formatTime($cell || 0),
+          "raw" => $time
+        };
+      } elsif (!$isEscaped && $fieldDef && $fieldDef->{type} =~ /^date/) {
+        my $time = "";
+        my $html = "";
+        if ($cell) {
+          if ($fieldDef->can("getDisplayValue") && $fieldDef->{type} ne 'date') { # standard default date formfield type can't parse&format dates
+            $time = $fieldDef->getDisplayValue($cell);
+          } else {
+            my $epoch = ($cell =~ /^\-?\d+$/)?$cell:Foswiki::Time::parseTime($cell); 
+            $time = Foswiki::Time::formatTime($epoch);
+          }
+
+          $html = "<span style='white-space:nowrap'>$time</span>";
+        }
+        $cell = {
+          "display" => $html,
+          "epoch" => $cell || 0,
+          "raw" => $time,
         };
       } elsif (!$isEscaped && $propertyName eq 'topic') {
         $cell = {
@@ -258,7 +283,7 @@ sub search {
       } elsif (!$isEscaped && $propertyName =~ /^(Author|Creator|info\.author|createauthor|publishauthor)$/) {
         my @html = ();
         foreach my $item (split(/\s*,\s*/, $cell)) {
-          my $topicTitle = Foswiki::Plugins::DBCachePlugin::getTopicTitle($Foswiki::cfg{UsersWebName}, $item);
+          my $topicTitle = Foswiki::Func::getTopicTitle($Foswiki::cfg{UsersWebName}, $item);
           push @html, 
             $topicTitle eq $item ?
             $item :
@@ -295,8 +320,6 @@ sub search {
         my $html = $cell;
 
         # try to render it for display
-        my $fieldDef = $formDef->getField($propertyName) if $formDef;
-
         if ($fieldDef) {
 
           # patch in a random field name so that they are different on each row
@@ -311,10 +334,13 @@ sub search {
           }
 
           $html = Foswiki::Func::expandCommonVariables($html, $topic, $params{web});
+          $html = '<noautolink> '.$html.' </noautolink>'; # SMELL: if $params{noautolink}
           $html = Foswiki::Func::renderText($html, $params{web}, $topic);
 
           # restore original name in form definition to prevent sideeffects
           $fieldDef->{name} = $oldFieldName;
+        } else {
+          $html = $this->translate($cell, $params{web}, $topic);
         }
 
         $cell = {
@@ -332,5 +358,6 @@ sub search {
 
   return ($total, $totalFiltered, \@data);
 }
+
 
 1;
