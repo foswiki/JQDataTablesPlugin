@@ -293,7 +293,7 @@ sub search {
           "display" => join(", ", @html),
           "raw" => $cell || "",
         };
-      } elsif (!$isEscaped && $propertyName =~ /(Image|Photo|Logo)/) {
+      } elsif (!$isEscaped && $propertyName =~ /(Image|Photo|Logo)/ && (!$fieldDef ||  $fieldDef->{type} ne 'attachment')) {
         my $url = $cell;
 
         unless ($url =~ /^(http:)|\//) {
@@ -328,7 +328,7 @@ sub search {
           $fieldDef->{name} .= int(rand(10000)) + 1;
 
           if ($fieldDef->can("getDisplayValue")) {
-            $html = $fieldDef->getDisplayValue($cell);
+            $html = $fieldDef->getDisplayValue($cell, $params{web}, $topic);
           } else {
             $html = $fieldDef->renderForDisplay('$value(display)', $cell, undef, $params{web}, $topic);
           }

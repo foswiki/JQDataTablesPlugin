@@ -53,6 +53,7 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =searchdelay= | delay before changes in a search box will cause new data to be fetched from the backend | =400= |
 | =sort= | specifies the column for initial ordering (see [[https://datatables.net/reference/option/order][docu]]) | first column |
 | =reverse= | specifies the initial ordering direction | =off= |
+| =savestate= | switch on/off remembering the state the datatable was in when coming back to the page; this includes sorting, paging as well as filtering; state information is stored in the browser's session store, that is state information is specific to the browser tab; closing a browser tab will purge all state infos of datatables with it | =off= |
 | =info= | switch on/off the info about the number of rows in the set (see [[https://datatables.net/reference/option/info][docu]]) | =off= |
 | =ordering= | switch on/off the ability to sort the table by clicking on a column header (see [[https://datatables.net/reference/option/ordering][docu]]) | =on= |
 | =scrollx= | switch on/off horizontal scrolling (see [[https://datatables.net/reference/option/scrollX][docu]]) | =off= |
@@ -193,6 +194,7 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  26 Nov 2018: | add docu for newly added =savestate= parameter to =DATATABLE=; fixed rendering image columns in <nop>DBCacheConnector |
 |  01 Oct 2018: | use !JQMomentContrib for better parsing and sorting of date columns on the client side; make use of new !TopicTitlePlugin; add support for !MultiLingualPlugin |
 |  25 Sep 2017: | fixed html5 data attributes |
 |  30 Aug 2017: | disabled =Author= auto-column; added =publishdate= and =publishauthor= auto-columns |
