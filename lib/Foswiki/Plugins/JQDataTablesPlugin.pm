@@ -21,8 +21,8 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '4.10';
-our $RELEASE = '07 Jan 2019';
+our $VERSION = '5.00';
+our $RELEASE = '01 Jul 2019';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 
 sub initPlugin {
