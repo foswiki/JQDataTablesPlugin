@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2018 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2019 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -225,8 +225,6 @@ sub search {
 
       my $topic = $doc->value_for("topic");
       my $formName = $doc->value_for("form");
-
-      #print STDERR "formName=$formName, web=$params{web}\n";
 
       my $formDef;
       if ($formName) {

@@ -49,10 +49,10 @@ $.fn.dataTable.moment = function ( format, locale ) {
                 }
 
                 var result = moment( d, format, locale, true ).isValid() ?
-                        'moment-'+format :
+                        'moment-'+format:
                         null;
 
-                //console.log("detect("+d+")="+result+", locale="+locale+", format="+format);
+                //console.log((result?"YES: ":"NON: ")+"detect("+d+")="+result);
                 return result;
         } );
 

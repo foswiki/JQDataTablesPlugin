@@ -1,6 +1,12 @@
 "use strict";
 jQuery(function($) {
 
+  var sort_prefix = 'css_right ui-icon ui-icon-',
+      toolbar_prefix = 'fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-',
+      _stateDefault = 'ui-state-default',
+      _sortIcon     = 'css_right ui-icon ui-icon-',
+      _headerFooter = 'fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix';
+
   $.extend($.fn.dataTable.defaults, {
     "jQueryUI": true,
     "searching": false,
@@ -9,6 +15,10 @@ jQuery(function($) {
     "paging": false,
     "processing": true,
     "stateDuration": -1,
+    "dom": '<"'+toolbar_prefix+'tl ui-corner-tr"lfr>'+
+            't'+
+            '<"'+toolbar_prefix+'bl ui-corner-br"ip>',
+    renderer: 'jqueryui',
 
     //"pagingType": "full_numbers",
     "lengthMenu": [ 5, 10, 25, 50, 100 ],
@@ -31,11 +41,8 @@ jQuery(function($) {
     }
   });
 
-  var _stateDefault = 'ui-state-default',
-      _sortIcon     = 'css_right ui-icon ui-icon-',
-      _headerFooter = 'fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix';
 
-  $.extend($.fn.dataTable.ext.oJUIClasses, {
+  $.extend($.fn.dataTable.ext.classes, {
       /* Full numbers paging buttons */
       "sPageButton":         "fg-button ui-button "+_stateDefault,
       "sPageButtonActive":   "ui-state-active",
@@ -71,9 +78,80 @@ jQuery(function($) {
       "sJUIFooter": _headerFooter+" ui-corner-bl ui-corner-br"
   });
 
+  $.fn.dataTable.ext.renderer.header.jqueryui = function ( settings, cell, column, classes ) {
+
+     // Calculate what the unsorted class should be
+     var noSortAppliedClass = sort_prefix+'caret-2-n-s';
+     var asc = $.inArray('asc', column.asSorting) !== -1;
+     var desc = $.inArray('desc', column.asSorting) !== -1;
+
+     if ( !column.bSortable || (!asc && !desc) ) {
+        noSortAppliedClass = '';
+     }
+     else if ( asc && !desc ) {
+        noSortAppliedClass = sort_prefix+'caret-1-n';
+     }
+     else if ( !asc && desc ) {
+        noSortAppliedClass = sort_prefix+'caret-1-s';
+     }
+
+     // Setup the DOM structure
+     $('<div/>')
+        .addClass( 'DataTables_sort_wrapper' )
+        .append( cell.contents() )
+        .append( $('<span/>')
+           .addClass( classes.sSortIcon+' '+noSortAppliedClass )
+        )
+        .appendTo( cell );
+
+     // Attach a sort listener to update on sort
+     $(settings.nTable).on( 'order.dt', function ( e, ctx, sorting, columns ) {
+        if ( settings !== ctx ) {
+           return;
+        }
+
+        var colIdx = column.idx;
+
+        cell
+           .removeClass( classes.sSortAsc +" "+classes.sSortDesc )
+           .addClass( columns[ colIdx ] == 'asc' ?
+              classes.sSortAsc : columns[ colIdx ] == 'desc' ?
+                 classes.sSortDesc :
+                 column.sSortingClass
+           );
+
+        cell
+           .find( 'span.'+classes.sSortIcon )
+           .removeClass(
+              sort_prefix+'triangle-1-n' +" "+
+              sort_prefix+'triangle-1-s' +" "+
+              sort_prefix+'caret-2-n-s' +" "+
+              sort_prefix+'caret-1-n' +" "+
+              sort_prefix+'caret-1-s'
+           )
+           .addClass( columns[ colIdx ] == 'asc' ?
+              sort_prefix+'triangle-1-n' : columns[ colIdx ] == 'desc' ?
+                 sort_prefix+'triangle-1-s' :
+                 noSortAppliedClass
+           );
+     } );
+  };
+
   $('.jqDataTablesContainer').livequery(function() {
     var $container = $(this), 
-        opts = $.extend({}, $container.metadata(), $container.data());
+        opts = $.extend({}, $container.metadata(), $container.data()),
+	rowCallbacks = [];
+
+    // create rowCallback
+    if (typeof(opts.rowCallback) !== 'undefined') {
+      rowCallbacks.push(opts.rowCallback);
+    }
+    opts.rowCallback = function(row, data, index) {
+      var self = this;
+      $.each(rowCallbacks, function(i, fn) {
+	fn.call(self, row, data, index);
+      });
+    };
 
     if (opts.dateTimeFormat) {
       $.fn.dataTable.moment(opts.dateTimeFormat, opts.dateTimeLocale);
@@ -142,7 +220,7 @@ jQuery(function($) {
         }
 
         // called per row
-        opts.rowCallback = function(row, data, index) {
+        rowCallbacks.push(function(row, data, index) {
           var api = this.api(),
               val = data[opts.select.property],
               checkbox;
@@ -159,7 +237,7 @@ jQuery(function($) {
           }
 
           $("td:eq(0)", row).html(checkbox);
-        };
+        });
 
         // called per page
         opts.drawCallback = function() {
@@ -178,6 +256,52 @@ jQuery(function($) {
         var num = Object.keys(rowSelection).length;
         return start +" - " + end + " of " + total + (num?"<span class='select-info'>, " + num + " selected</span>":"");
       };
+
+      // row groups
+      if (typeof(opts.rowGroup) !== 'undefined') {
+        $.each(opts.rowGroup.dataSrc, function(i, val) {
+          var num = parseInt(val, 10);
+          if (!isNaN(num)) {
+            opts.rowGroup.dataSrc[i] = num;
+          }
+        });
+      }
+
+      // row css
+      if (typeof(opts.rowCss) !== 'undefined') {
+        var fn = new Function("data", opts.rowCss);
+        rowCallbacks.push(function(row, data, index) {
+          var prop = fn(data);
+          if (typeof(prop) === 'string') {
+            $(row).children().css("background-color", prop);
+          } else if (typeof(prop) === 'object') {
+            $(row).children().css(prop);
+          }
+        });
+      }
+
+      // row class
+      if (typeof(opts.rowClass) !== 'undefined') {
+        var fn = new Function("data", opts.rowClass);
+        rowCallbacks.push(function(row, data, index) {
+          var cls = fn(data);
+          if (typeof(cls) === 'string') {
+            $(row).addClass(cls);
+          }
+        });
+      }
+
+      // autocolor 
+      if (typeof(opts.autoColor) !== 'undefined') {
+        var cols = opts.autoColor.split(/\s*,\s*/);
+        rowCallbacks.push(function(row, data, index) {
+          var api = this.api(), index, $cells = $(row).children();
+          $.each(cols, function(i, val) {
+            var index = api.column(val+":name").index()-1;
+            $cells.eq(index).autoColor();
+          });
+        });
+      }
 
       // instantiate
       dt = $table.DataTable(opts);

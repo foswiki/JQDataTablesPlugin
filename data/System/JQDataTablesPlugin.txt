@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1465808847" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1561977839" format="1.1" reprev="2" version="2"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -42,7 +42,7 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =connector= | connector to be used to fetch data dynamically from the backend; possible values are =search= (using Foswiki's native %SEARCH), =dbcache= (needs Foswiki:Extensions/DBCachePlugin), =solr= (needs Foswiki:Extensions/SolrPlugin), additional connectors may be implemented by plugins; NOTE: for general-purpose search =dbcache= is the best choice | defined in =$Foswiki::cfg{JQDataTablesPlugin}{DefaultConnector}= |
 | =class= | additional css class to be added to the widget in addition to =foswikiTable= | |
 | =width= | width of table, e.g. =100%= and the like | |
-| =web= | web to query for data | current web |
+| =web=, =webs= | web or list of webs to query for data | current web |
 | =form= | data form definition | |
 | =paging=, =pager= | switch on/off paging data; NOTE: this parameter is deactivated when =scrolling= is specifed as well (see [[https://datatables.net/reference/option/paging][docu]]) | =off= |
 | =pagelength=, =rows= | number of rows to be displayed when =paging= is enabled (see [[https://datatables.net/reference/option/pageLength][docu]]) | =10= |
@@ -60,11 +60,16 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =scrolly= | specify vertical scrolling (see [[https://datatables.net/reference/option/scrollY][docu]]) | =off= |
 | =scrollcollapse= | switch on/off collapsing of the table height on small data sets (see [[https://datatables.net/reference/option/scrollCollapse][docu]]) | =off= |
 | =columns= | comma-separated list of formfield names to be displayed; see the notes on special columns below | all formfields of the !DataForm specified by =form=  |
+| =rowgroup= | comma-separated list of columns that should be used to create groups of rows | |
 | =selecting= | switch on/off [[https://datatables.net/extensions/select/][select extension]] | |
 | =selectproperty= | specifies the property of a row to be selected when =selection= is enabled | =topic= |
 | =selectmode= | possible values are =os=, =single=, =multi=, this specifies the way a selection is made (see [[https://datatables.net/reference/option/select.style][docu]]) | =multi= |
 | =responsive= | switch on/off [[https://datatables.net/extensions/responsive/][responsive extension]] | |
 | =fixedheader= | switch on/off [[https://datatables.net/extensions/fixedheader/][fixed header extension]] | |
+| =hidecolumns= | comma-separated list of columns to hide from the output; while hidden column data is still fetched available for further processing such as grouping or styling a row | |
+| =rowclass= | javascript function that is supposed to return a css class when a row is rendered; the string returned is added as a class to the row elements of the table | |
+| =rowcss= | javascript function that is supposed to return a string or an object to apply inline css to all cells of a row | |
+| =autocolor= | comma-separted list of columns to auto-color based on the cell content; note this needs the [[Foswiki:Extensions/JQAutoColorContrib][JQAutoColorContrib]] to be installed and activated | |
 | =&lt;field-name>_title= | a column title for a given =field-name=, e.g. =ProjectState_title="State"= | name of the formfield as specified in =columns= |
 | =&lt;field-name>_width= | column width for a given field, e.g. =ProjectID_width=5em= | |
 
@@ -83,9 +88,28 @@ the formfield. There are however a few column names that have a special meaning 
    * =publishdate=: date when the =publishauthor= created the initial revision, defaults to =createdate= in case there is no explicut =PublishDate= field in the form
    * =Worflow=: name of the workflow assigned to a topic
    * A column name starting with a =/= (slash) will be excluded from any special treatment, i.e. =/Author= will _not_ be interpreted as the author of the recent topic revision, but as the =Author= formfield of a !DataForm (see below example).
+   
+---++ HTML5
 
----+++ Example
+A data table can also be applied to an already existing table enhancing it with additional features such as paging, client-side sorting, searching etc.
+This is done by wrapping your tables into a =.jqDataTablesContainer= div element and specify additional parameters using HTML5 data attributes
 
+<verbatim class="tml">
+%JQREQUIRE{"datatables"}%
+<div class="jqDataTablesContainer" data-paginate="true" data-searching="true" data-info="true">
+| *Header* | *Header* | *Header* | *Header* |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+| Data | Data | Data | Data |
+</div>
+</verbatim>
+
+See http://datatables.net/reference/index for a full list of all options.
+
+---++ Examples
+
+---+++ List of PackageForm topics
 Below example lists all topics in the %SYSTEMWEB% web that have the [[%SYSTEMWEB%.PackageForm]] attached to it:
 
 <verbatim class="tml">
@@ -107,13 +131,142 @@ Below example lists all topics in the %SYSTEMWEB% web that have the [[%SYSTEMWEB
   then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example3\"}$percnt" 
 }%
 
----++ HTML5
-
-A data table can also be applied to an already existing table enhancing it with additional features such as paging, client-side sorting, searching etc.
-This is done by wrapping your tables into a =.jqDataTablesContainer= div element and specify additional parameters using HTML5 data attributes
+---+++ Selecting topics
 
 <verbatim class="tml">
-%JQREQUIRE{"datatables"}%
+%STARTSECTION{"example4"}%
+<form action="%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%" method="post">
+%DATATABLE{
+   web="System"
+   class="foswikiFlatTable foswikiStripes"
+   form="%SYSTEMWEB%.PackageForm"
+   sort="TopicTitle"
+   columns="index, TopicTitle, Description, /Author, Changed"
+   TopicTitle_title="Title" 
+   info="on"
+   paging="on" 
+   rows="10"
+   selecting="on"
+   selectmode="multi"
+   selectproperty="Topic"
+   selection="%URLPARAM{"Topic"}%"
+}%
+%BUTTON{"%TRANSLATE{"Submit"}%" type="submit" icon="tick"}%
+</form>
+%ENDSECTION{"example4"}%
+</verbatim>
+
+%IF{"context JQDataTablesPluginEnabled" 
+  then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example4\"}$percnt" 
+}%
+
+---+++ Coloring rows using inline CSS
+
+<verbatim class="tml">
+%STARTSECTION{"example5"}%
+%DATATABLE{
+   query="form~'FAQForm' AND topic!='FAQTemplate'"
+   class="foswikiFlatTable foswikiTable foswikiStripes"
+   web="%SYSTEMWEB%"
+   paging="on"
+   columns="Topic,TopicSummary,TopicClassification,Changed"
+   TopicSummary_title="Summary"
+   TopicClassification_title="Category"
+   RelatedTopics_title="Related"
+   rows="10"
+   sort="TopicSummary"
+   ordering="off"
+   searching="on"
+   rowcss="var css = { 
+      'SupportQuestion': '#FFC107y', 
+      'FrequentlyAskedQuestion': {
+         'background-color': '#4Caf40', 
+         'color': '#fff'
+      },
+      'SupplementalDoc': '#f44336', 
+      'AdminTopic': {
+         'background-color': '#b22222',
+         'color': '#fff'
+      }
+   }; return css[data.TopicClassification.raw];"
+}%
+%ENDSECTION{"example5"}%
+</verbatim>
+
+%IF{"context JQDataTablesPluginEnabled" 
+  then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example5\"}$percnt" 
+}%
+
+---+++ Coloring rows using classes
+
+This example is not fully working. It depends on a !DataForm definition for Invoice topics, that have at least formfields 
+
+   * Client: client that is invoiced
+   * Total: amount of money 
+   * !IssueDate: date when the invoice was sent to the client
+   * !DueDate: date until when the invoice has to be paid
+   * State: the state the invoice is in: created, invoiced, overdue, reminded, disputed, paid, partial, withdrawn
+
+We will use two properties of invoices to color the table. Depeding in the property values css classes will be applied that
+we crawft styles for. The invoice column will be colored depending on the State of an invoice. A blue line will be drawn
+below which all invoices have to be paid, that is the table will be devided in two parts below and above the line where
+above the line invoices will be paid in the future and below the line invoices should have to be paid up to today.
+
+To make this work we create a small javascript fragment that returns the =rowclass=.
+
+In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoColorContrib.
+
+<verbatim class="tml">
+%STARTSECTION{"example6"}%
+%DATATABLE{
+   form="Invoice"
+   class="foswikiFlatTable foswikiTable foswikiStripes"
+   web="%SYSTEMWEB%"
+   paging="on"
+   columns="Topic,Client,Total,State,IssueDate,DueDate"
+   rows="10"
+   sort="DueDate"
+   ordering="off"
+   searching="on"
+   autocolor="Client"
+   rowclass="
+      var now = Date.now() / 1000; 
+      var cls = data.State.raw; 
+      if (data.DueDate.epoch <= now) { 
+         cls += ' past'
+      }; 
+      return cls; "
+}%
+%JQREQUIRE{"autocolor"}%
+<style>
+.dataTable tr.past {
+  border-top: 3px solid #3e89d3;
+}
+.dataTable tr.past:first-of-type,
+.dataTable tr.past + tr.past {
+   border-top:0;
+}
+.dataTable tr.invoiced > td:nth-child(4) {
+   background-color:#FFC107 !important;
+}
+.dataTable tr.reminded > td:nth-child(4) {
+   background-color:#b22222 !important;
+   color:#fff !important;
+}
+.dataTable tr.paid > td:nth-child(4) {
+   background-color:#4Caf40 !important;
+   color:#fff !important;
+}
+.dataTable tr.overdue > td:nth-child(4) {
+   background-color:#f44336 !important;
+   color:#fff !important;
+}
+</style>
+%ENDSECTION{"example6"}%
+</verbatim>
+
+---+++ HTML5 simple example
+<verbatim class="tml">
 <div class="jqDataTablesContainer" data-paginate="true" data-searching="true" data-info="true">
 | *Header* | *Header* | *Header* | *Header* |
 | Data | Data | Data | Data |
@@ -123,19 +276,8 @@ This is done by wrapping your tables into a =.jqDataTablesContainer= div element
 </div>
 </verbatim>
 
-See http://datatables.net/reference/index for a full list of all options.
+---+++ HTML5 formatted search
 
-<verbatim class="tml">
-<div class="jqDataTablesContainer" data-paginate="true" data-searching="true" data-info="true">
-| *Header* | *Header* | *Header* | *Header* |
-| Data | Data | Data | Data |
-| Data | Data | Data | Data |
-| Data | Data | Data | Data |
-| Data | Data | Data | Data |
-</div>
-</verbatim>
-
----++ Example
 This example generates a table dynamically using a [[%SYSTEMWEB%.FormattedSearch]]:
 
 %JQREQUIRE{"datatables" warn="off"}%
@@ -157,6 +299,8 @@ This example generates a table dynamically using a [[%SYSTEMWEB%.FormattedSearch
 %IF{"context JQDataTablesPluginEnabled" 
   then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example1\"}$percnt" 
 }%
+
+---+++ HTML5 client side sorting
 
 <nop>%TOPIC% comes with additional sorting features for specific types of data:
 
@@ -194,6 +338,8 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  01 Jul 2019: | updated to latest upstream version of !Datatables; added parameters =rowgroup=, =rowclass=, =rowcss=, =hidecolumns= and =autocolor= |
+|  07 Jan 2019: | added =webs= parameter to =DATATABLE= to query multiple webs at once |
 |  26 Nov 2018: | add docu for newly added =savestate= parameter to =DATATABLE=; fixed rendering image columns in <nop>DBCacheConnector |
 |  01 Oct 2018: | use !JQMomentContrib for better parsing and sorting of date columns on the client side; make use of new !TopicTitlePlugin; add support for !MultiLingualPlugin |
 |  25 Sep 2017: | fixed html5 data attributes |
@@ -217,12 +363,12 @@ Click on the table headers to sort the columns according to their data type.
 |  18 Jan 2013: | Initial version |
 
 %META:FORM{name="PackageForm"}%
-%META:FIELD{name="Author" title="Author" value="Foswiki:Main.SvenDowideit, Foswiki:Main.MichaelDaum"}%
+%META:FIELD{name="Author" title="Author" value="Foswiki:Main.MichaelDaum, Foswiki:Main.SvenDowideit"}%
 %META:FIELD{name="Version" title="Version" value="%25$VERSION%25"}%
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="2012 SvenDowideit@fosiki.com, 2013-2018 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="Copyright" title="Copyright" value="2012 SvenDowideit@fosiki.com, 2013-2019 Michael Daum http://michaeldaumconsulting.com"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
 %META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25TOPIC%25"}%
 %META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25TOPIC%25"}%

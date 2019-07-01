@@ -1,4 +1,13 @@
-# See end of file for license and copyright information
+# Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
+# 
+# JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2019 Michael Daum http://michaeldaumconsulting.com
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# For licensing info read LICENSE file in the root of this distribution.
+
 package Foswiki::Plugins::JQDataTablesPlugin;
 
 use strict;
@@ -12,8 +21,8 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '4.01';
-our $RELEASE = '26 Nov 2018';
+our $VERSION = '4.10';
+our $RELEASE = '07 Jan 2019';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 
 sub initPlugin {
@@ -27,6 +36,7 @@ sub initPlugin {
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesSelect', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::Select');
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesFixedHeader', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::FixedHeader');
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesScroller', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::Scroller');
+  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesRowGroup', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::RowGroup');
 
   #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesJSZip', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::JSZip');
   #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesKeyTable', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::KeyTable');
@@ -44,13 +54,12 @@ sub initPlugin {
   return 1;
 }
 
+#use Foswiki::Plugins::JQDataTablesPlugin::DataTables;
 sub handleDataTable {
-  my $session = shift;
-
   my $plugin = Foswiki::Plugins::JQueryPlugin::createPlugin('datatables');
 
   return $plugin->handleDataTable(@_) if $plugin;
-  return '';
+  return "<span class='foswikiAlert'>ERROR: loading plugin datatables</span>";
 }
 
 sub restConnector {
@@ -111,13 +120,3 @@ sub printRESTResult {
 }
 
 1;
-__END__
-Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
-
-JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2018 Michael Daum http://michaeldaumconsulting.com
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-For licensing info read LICENSE file in the root of this distribution.

@@ -1,3 +1,18 @@
+# Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
+#
+# JQDataTablesPlugin is Copyright (C) 2013-2019 Michael Daum http://michaeldaumconsulting.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details, published at
+# http://www.gnu.org/copyleft/gpl.html
+
 package Foswiki::Plugins::JQDataTablesPlugin::DataTables;
 
 use strict;
@@ -19,12 +34,12 @@ sub new {
     $class->SUPER::new(
       $session,
       name => 'DataTables',
-      version => '1.10.12',
+      version => '1.10.18',
       author => 'SpryMedia Ltd',
       homepage => 'http://datatables.net/',
       puburl => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',
       css => ['jquery.datatables.css'],
-      javascript => ['DataTables/js/jquery.dataTables.min.js', 'jquery.datatables.addons.js'],
+      javascript => ['jquery.datatables.js', 'jquery.datatables.addons.js'],
       i18n => $Foswiki::cfg{SystemWebName} . "/JQDataTablesPlugin/i18n",
       dependencies => ['metadata', 'livequery', 'i18n', 'moment'],
       summary => <<SUMMARY), $class);
@@ -32,6 +47,7 @@ sub new {
 flexible tool, based upon the foundations of progressive enhancement, which
 will add advanced interaction controls to any HTML table.
 SUMMARY
+
 }
 
 sub _push {
@@ -49,14 +65,14 @@ sub _json {
   my $this = shift;
 
   unless (defined $this->{_json}) {
-    $this->{_json} = JSON->new;
+    $this->{_json} = JSON->new->allow_nonref(1);
   }
 
   return $this->{_json};
 }
 
 sub handleDataTable {
-  my ($this, $params, $topic, $web) = @_;
+  my ($this, $session, $params, $topic, $web) = @_;
 
   my $html5Data = [];
 
@@ -64,11 +80,11 @@ sub handleDataTable {
   my $theWidth = $params->{width};
   $theWidth = defined($theWidth) ? "width='$theWidth'" : "";
 
-  my $theWeb = $params->{web} || $web;
+  my $theWebs = $params->{web} || $params->{web} || $web;
   my $theTopic = $params->{topic} || $topic;
   my $theForm = $params->{form} || '';
 
-  my ($thisWeb, $thisTopic) = Foswiki::Func::normalizeWebTopicName($theWeb, $theTopic);
+  my ($thisWeb, $thisTopic) = Foswiki::Func::normalizeWebTopicName($web, $theTopic);
 
   my $thePaging =
     Foswiki::Func::isTrue($params->{paging} || $params->{pager}, 0)
@@ -103,9 +119,6 @@ sub handleDataTable {
 
   my $theInfo = Foswiki::Func::isTrue($params->{info}, 0) ? 'true' : 'false';
   $this->_push($html5Data, "info", $theInfo);
-
-  my $theOrdering = Foswiki::Func::isTrue($params->{ordering}, 1) ? 'true' : 'false';
-  $this->_push($html5Data, "ordering", $theOrdering);
 
   my $theScrollX = Foswiki::Func::isTrue($params->{scrollx}, 0) ? 'true' : 'false';
   $this->_push($html5Data, "scroll-x", $theScrollX);
@@ -166,15 +179,40 @@ sub handleDataTable {
     $this->_push($html5Data, "fixed-header", "true");
   }
 
+  my %hiddenColumns = map {$_ => 1} split(/\s*,\s*/, $params->{hidecolumns} || '');
+  my $theRowGroup = $params->{rowgroup};
+  if (defined $theRowGroup && $theRowGroup ne "") {
+    Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesrowgroup");
+    my @rowGroup = split(/\s*,\s*/, $theRowGroup);
+
+    $this->_push($html5Data, "row-group", {
+      "dataSrc" => \@rowGroup
+    });
+  }
+
+  my $theRowCss = $params->{rowcss};
+  if (defined $theRowCss) {
+    $this->_push($html5Data, "row-css", $theRowCss);
+  }
+
+  my $theRowClass = $params->{rowclass};
+  if (defined $theRowClass) {
+    $this->_push($html5Data, "row-class", $theRowClass);
+  }
+
+  my $theAutoColor = $params->{autocolor};
+  if (defined $theAutoColor) {
+    $this->_push($html5Data, "auto-color", $theAutoColor);
+  }
+
   my $formDef;
   my $formParam = '';
 
   if ($theForm) {
-    my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName($theWeb, $theForm);
+    my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName($thisWeb, $theForm);
     $formWeb =~ s/\//./g;
 
     my $error;
-    my $session = $this->{session} || $Foswiki::Plugins::SESSION;
     try {
       $formDef = new Foswiki::Form($session, $formWeb, $formTopic);
     }
@@ -182,7 +220,7 @@ sub handleDataTable {
       $error = "<div class='foswikiAlert'>ERROR: form $formWeb.$formTopic not found.</div>";
     };
     return $error if $error;
-    $formParam = $formTopic;
+    $formParam = $formWeb.'.'.$formTopic;
   }
 
   my @columnFields = ();
@@ -203,7 +241,6 @@ sub handleDataTable {
       }
     }
   }
-
 
   my @thead = ();
 
@@ -239,7 +276,9 @@ sub handleDataTable {
     $index++;
   }
 
-  my $order = [[0, $theReverse]];    # default
+  my $theOrdering = Foswiki::Func::isTrue($params->{ordering}, 1);
+
+  my @order = ();    # default
   foreach my $fieldDef (@columnFields) {
     my $fieldName;
     if (ref($fieldDef)) {
@@ -251,7 +290,9 @@ sub handleDataTable {
     push @thead, "<th>$fieldName</th>";
     my $col = {
       "data" => $fieldName,
-      "name" => $fieldName
+      "name" => $fieldName,
+      "visible" => $hiddenColumns{$fieldName} ? JSON::false: JSON::true,
+      "orderable" => $theOrdering ? JSON::true : JSON::false,
     };
 
     if ($fieldName eq 'index') {
@@ -293,7 +334,7 @@ sub handleDataTable {
     $col->{width} = $width if $width;
 
     push @columns, $col;
-    $order = [[$index, "$theReverse"]] if $theSort eq $fieldName;
+    push @order, [$index, "$theReverse"] if $theSort =~ /\b$fieldName\b/;
     $index++;
   }
   push @thead, "</tr>";
@@ -302,7 +343,8 @@ sub handleDataTable {
     unshift @thead, "<tr class='colSearchRow'>", @multiFilter, "</tr>";
   }
 
-  $this->_push($html5Data, "order", $order);
+  push @order,  [0, $theReverse] unless @order; # default;
+  $this->_push($html5Data, "order", \@order);
 
   my $thead = join("\n", @thead);
   $this->_push($html5Data, "columns", \@columns);
@@ -324,7 +366,7 @@ sub handleDataTable {
       t => $time,
       form => $formParam,
       topic => "$thisWeb.$thisTopic",
-      web => $theWeb,
+      webs => $theWebs,
       connector => $connector,
     },
   };

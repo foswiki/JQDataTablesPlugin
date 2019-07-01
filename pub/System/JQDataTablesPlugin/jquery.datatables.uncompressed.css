@@ -244,6 +244,22 @@ table.dataTable tbody > tr > .selected {
   background: #efffd8 !important;
 }
 
+/* row group */
+table.dataTable tr.dtrg-group td {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+table.dataTable tr.dtrg-group td,
+table.dataTable tr.dtrg-group td a {
+  text-decoration:none;
+  color:#3e89d3;
+}
+
+table.dataTable tr.dtrg-group.dtrg-level-1 td,
+table.dataTable tr.dtrg-group.dtrg-level-2 td {
+  padding-left: 2em;
+}
+
 @media screen and (max-width: 767px) {
   .dataTables_wrapper .dataTables_info,
   .dataTables_wrapper .dataTables_paginate {

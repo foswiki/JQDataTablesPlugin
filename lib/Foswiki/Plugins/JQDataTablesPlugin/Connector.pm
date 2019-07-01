@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2018 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2019 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -91,8 +91,22 @@ sub restHandleSearch {
   my $skip = $request->param("start") || 0;
   my $limit = $request->param("length") || 10;
   my $form = $request->param("form");
-  my $web = $request->param('web') || $this->{session}->{webName};
-  $web = Foswiki::Sandbox::untaint($web, \&Foswiki::Sandbox::validateWebName);
+  my $web = $request->param("web") || $this->{session}{webName};
+  my $topic = $request->param("topic") || $this->{session}{topicName};
+  my $webs = $request->param("webs");
+
+  ($web, $topic) = Foswiki::Func::normalizeWebTopicName($web, $topic);
+
+  my @webs;
+  if ($webs) {
+    if ($webs eq 'all') {
+      @webs = Foswiki::Func::getListOfWebs();
+    } else {
+      @webs = split(/\s*,\s*/, $webs);
+    }
+  } else {
+    push @webs, $web;
+  }
 
   my $query = $this->buildQuery($request);
 
@@ -117,6 +131,8 @@ sub restHandleSearch {
 
   ($totalRecords, $totalDisplayRecords, $data) = $this->search(
     web => $web,
+    topic => $topic,
+    webs => \@webs,
     query => $query,
     sort => $sort,
     reverse => $reverse,
