@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# JQDataTablesPlugin is Copyright (C) 2013-2019 Michael Daum http://michaeldaumconsulting.com
+# JQDataTablesPlugin is Copyright (C) 2013-2020 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -41,7 +41,7 @@ sub new {
       css => ['jquery.datatables.css'],
       javascript => ['jquery.datatables.js', 'jquery.datatables.addons.js'],
       i18n => $Foswiki::cfg{SystemWebName} . "/JQDataTablesPlugin/i18n",
-      dependencies => ['metadata', 'livequery', 'i18n', 'moment'],
+      dependencies => ['metadata', 'i18n', 'moment', 'pnotify'],
       summary => <<SUMMARY), $class);
 !DataTables is a plug-in for the jQuery Javascript library. It is a highly
 flexible tool, based upon the foundations of progressive enhancement, which
@@ -80,7 +80,7 @@ sub handleDataTable {
   my $theWidth = $params->{width};
   $theWidth = defined($theWidth) ? "width='$theWidth'" : "";
 
-  my $theWebs = $params->{web} || $params->{web} || $web;
+  my $theWebs = $params->{web} || $params->{webs} || $web;
   my $theTopic = $params->{topic} || $topic;
   my $theForm = $params->{form} || '';
 
@@ -109,12 +109,12 @@ sub handleDataTable {
   $this->_push($html5Data, "searching", $theSearching);
   $this->_push($html5Data, "search-mode", $theSearchMode);
 
-  my $theReverse = Foswiki::Func::isTrue($params->{reverse}, 0) ? 'desc' : 'asc';
+  my $theReverse = $params->{reverse} || 'off';
 
   my $theSaveState = Foswiki::Func::isTrue($params->{savestate}, 0) ? 'true' : 'false';
   if ($theSaveState eq 'true') {
     $this->_push($html5Data, "state-save", $theSaveState);
-    $this->_push($html5Data, "state-duration", -1); # use session store
+    $this->_push($html5Data, "state-duration", -1);    # use session store
   }
 
   my $theInfo = Foswiki::Func::isTrue($params->{info}, 0) ? 'true' : 'false';
@@ -129,7 +129,10 @@ sub handleDataTable {
   my $theScrollCollapse = Foswiki::Func::isTrue($params->{scrollcollapse}, 0) ? 'true' : 'false';
   $this->_push($html5Data, "scroll-collapse", $theScrollCollapse);
 
-  my $theSearchDelay = $params->{searchdelay} || "400";
+  my $theAutoWidth = Foswiki::Func::isTrue($params->{autowidth}, 0) ? 'true' : 'false';
+  $this->_push($html5Data, "auto-width", $theAutoWidth);
+
+  my $theSearchDelay = $params->{searchdelay} || "1000";
   $this->_push($html5Data, "search-delay", $theSearchDelay);
 
   my $theSort = $params->{sort} || '';
@@ -145,7 +148,8 @@ sub handleDataTable {
 
   my $theSelecting = Foswiki::Func::isTrue($params->{selecting}, 0);
   my $theSelectMode = $params->{selectmode} || "multi";
-  my $theSelectProperty = $params->{selectproperty} || "Topic";
+  my $theSelectProperty = $params->{selectproperty} || "topic";
+  my $theSelectName = $params->{selectname} || $theSelectProperty;
   my $selectInput = "";
   if ($theSelecting) {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesselect");
@@ -162,7 +166,7 @@ sub handleDataTable {
 
     $this->_push($html5Data, "select", $selectOpts);
 
-    $selectInput = "<input type='hidden' name='$theSelectProperty' class='selectInput' />";
+    $selectInput = "<input type='hidden' name='$theSelectName' class='selectInput' />";
   }
 
   my $theResponsive = Foswiki::Func::isTrue($params->{responsive}, 0);
@@ -179,15 +183,27 @@ sub handleDataTable {
     $this->_push($html5Data, "fixed-header", "true");
   }
 
-  my %hiddenColumns = map {$_ => 1} split(/\s*,\s*/, $params->{hidecolumns} || '');
+  my $theButtons = $params->{buttons} || '';
+  if ($theButtons) {
+    Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesbuttons");
+    Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesjszip") if $theButtons =~ /\b(excel|csv)\b/;
+    Foswiki::Plugins::JQueryPlugin::createPlugin("datatablespdfmake") if $theButtons =~ /\bpdf\b/;
+    $this->_push($html5Data, "buttons", [split(/\s*,\s*/, $theButtons)]);
+  }
+
+  my %hiddenColumns = map { $_ => 1 } split(/\s*,\s*/, $params->{hidecolumns} || '');
   my $theRowGroup = $params->{rowgroup};
   if (defined $theRowGroup && $theRowGroup ne "") {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesrowgroup");
     my @rowGroup = split(/\s*,\s*/, $theRowGroup);
 
-    $this->_push($html5Data, "row-group", {
-      "dataSrc" => \@rowGroup
-    });
+    $this->_push(
+      $html5Data,
+      "row-group",
+      {
+        "dataSrc" => \@rowGroup
+      }
+    );
   }
 
   my $theRowCss = $params->{rowcss};
@@ -251,7 +267,7 @@ sub handleDataTable {
   push @thead, "<tr>";
   my $index = 0;
 
-  unless (grep { my $fieldName = ref($_) ? $_->{name}:$_; $fieldName =~ /^($theSelectProperty)$/i } @columnFields) {
+  unless (grep { my $fieldName = ref($_) ? $_->{name} : $_; $fieldName =~ /^($theSelectProperty)$/i } @columnFields) {
     push @columns,
       {
       data => $theSelectProperty,
@@ -278,7 +294,7 @@ sub handleDataTable {
 
   my $theOrdering = Foswiki::Func::isTrue($params->{ordering}, 1);
 
-  my @order = ();    # default
+  my %order = (); 
   foreach my $fieldDef (@columnFields) {
     my $fieldName;
     if (ref($fieldDef)) {
@@ -291,11 +307,11 @@ sub handleDataTable {
     my $col = {
       "data" => $fieldName,
       "name" => $fieldName,
-      "visible" => $hiddenColumns{$fieldName} ? JSON::false: JSON::true,
+      "visible" => $hiddenColumns{$fieldName} ? JSON::false : JSON::true,
       "orderable" => $theOrdering ? JSON::true : JSON::false,
     };
 
-    if ($fieldName eq 'index') {
+    if ($fieldName =~ /^(index|thumbnail|icon)/) {
       $col->{render} = {
         "_" => "raw",
         "display" => "display",
@@ -303,7 +319,7 @@ sub handleDataTable {
       $col->{title} = "";
       $col->{searchable} = JSON::false;
       $col->{orderable} = JSON::false;
-    } elsif ($fieldName =~ /^(Date|Changed|Modified|Created|info\.date|createdate)$/) {
+    } elsif ($fieldName =~ /^(Date|Changed|Modified|Created|info\.date|createdate)$/ || ($fieldDef->{type} && $fieldDef->{type} =~ /^date/)) {
       $col->{render} = {
         "_" => "raw",
         "display" => "display",
@@ -325,16 +341,28 @@ sub handleDataTable {
     }
 
     # construct column title
-    my $title;
-    $title = $fieldName if $fieldName =~ s/^\///;
-    $title = $params->{$fieldName . '_title'} if defined $params->{$fieldName . '_title'};
+    my $title = '';
+    $title = $fieldName if $fieldName =~ s/^[#\/]//;
+    my $key = $fieldName . '_title';
+    $key =~ s/[_\(\)\[\]\.,\s]+/_/g;
+    $title = $params->{$key} if defined $params->{$key};
     $col->{title} = $title if $title;
 
     my $width = $params->{$fieldName . '_width'};
     $col->{width} = $width if $width;
 
     push @columns, $col;
-    push @order, [$index, "$theReverse"] if $theSort =~ /\b$fieldName\b/;
+
+    if ($theSort =~ /\b$fieldName\b/) {
+      my $reverse = 'asc';
+      if ($theReverse =~ /\b$fieldName\b/) {
+        $reverse = 'desc';
+      } else {
+        $reverse = ($theReverse =~ /^\s*(on|true|1|no)\s*$/) ? 'desc' : 'asc';
+      }
+
+      $order{$fieldName} = [$index, $reverse];
+    }
     $index++;
   }
   push @thead, "</tr>";
@@ -343,7 +371,16 @@ sub handleDataTable {
     unshift @thead, "<tr class='colSearchRow'>", @multiFilter, "</tr>";
   }
 
-  push @order,  [0, $theReverse] unless @order; # default;
+  my @order = ();
+  if ($theSort eq '') {
+    @order = map {$order{$_}} sort {$a->[0] <=> $b->[0]} keys %order;
+  } else {
+    foreach my $fieldName (split(/\s*,\s*/, $theSort)) {
+      push @order, $order{$fieldName} if defined $order{$fieldName};
+    }
+  }
+
+  push @order, [0, $theReverse] unless @order;    # default;
   $this->_push($html5Data, "order", \@order);
 
   my $thead = join("\n", @thead);
@@ -370,6 +407,21 @@ sub handleDataTable {
       connector => $connector,
     },
   };
+
+  my $theContext = $params->{context};
+  $ajax->{data}{context} = $theContext if $theContext;
+
+  $ajax->{data}{"protected-columns"} = $params->{protectedcolumns}
+    if defined $params->{protectedcolumns};
+
+  my $theTopics = $params->{topics};
+  $ajax->{data}{topics} = $theTopics if $theTopics;
+
+  my $theInclude = $params->{include};
+  $ajax->{data}{include} = $theInclude if $theInclude;
+
+  my $theExclude = $params->{exclude};
+  $ajax->{data}{exclude} = $theExclude if $theExclude;
 
   my $theQuery = $params->{_DEFAULT} || $params->{query} || '';
   if ($theQuery) {

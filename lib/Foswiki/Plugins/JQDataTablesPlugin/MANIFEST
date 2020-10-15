@@ -7,6 +7,8 @@ lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/Buttons.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/ColReorder.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/FixedColumns.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/FixedHeader.pm 0644
+lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/JSZip.pm 0644
+lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/PDFMake.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/Responsive.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/RowGroup.pm 0644
@@ -101,7 +103,6 @@ pub/System/JQDataTablesPlugin/jquery.datatables.init.js.gz 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.init.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.js.gz 0644
-pub/System/JQDataTablesPlugin/jquery.datatables.js.patch 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.uncompressed.css 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/JSZip/jszip.js 0644

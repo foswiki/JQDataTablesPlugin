@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2019 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2020 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@ use strict;
 use warnings;
 
 use Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector ();
+use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Plugins::SolrPlugin ();
 use Foswiki::OopsException ();
 use Foswiki::Form ();
@@ -51,16 +52,99 @@ sub new {
   my $this = $class->SUPER::new($session);
 
   # maps column names to accessors to the actual property being displayed
-  $this->{propertyMap} = {
-    'topic' => 'Topic',
-    'Topic' => 'topic',
-    'TopicTitle' => 'title',
-    'Changed' => 'date',
-    'By' => 'author',
-    'Author' => 'author',
-    'Workflow' => 'workflow',
-    'Created' => 'createdate',
-    'Creator' => 'createauthor',
+  $this->{columnDescription} = {
+    'score' => {
+      type => 'score',
+      data => 'score',
+      search => 'score',
+      sort => 'score',
+    },
+    'comments' => {
+      type => 'number',
+      data => 'field_Comments_d',
+      search => 'field_Comments_d',
+      sort => 'field_Comments_d',
+    },
+    'commentdate' => {
+      type => 'date',
+      data => 'field_Comments_dt',
+      search => 'field_Comments_search',
+      sort => 'field_Comments_dt',
+    },
+    'Topic' => {
+      type => 'topic',
+      data => 'topic',
+      search => 'topic_search',
+      sort => 'topic_sort',
+    },
+    'TopicTitle' => {
+      type => 'default',
+      data => 'title',
+      search => 'title_search',
+      sort => 'title_sort',
+    },
+    'Modified' => {
+      type => 'date',
+      data => 'date',
+      search => 'date_search',
+      sort => 'date',
+    },
+    'Changed' => {
+      type => 'date',
+      data => 'date',
+      search => 'date_search',
+      sort => 'date',
+    },
+    'author' => {
+      type => 'user',
+      data => 'author',
+      search => 'author',
+      sort => 'author',
+    },
+    'By' => {
+      type => 'user',
+      data => 'author',
+      search => 'author',
+      sort => 'author',
+    },
+    'Created' => {
+      type => 'date',
+      data => 'createdate',
+      search => 'createdate_search',
+      sort => 'createdate',
+    },
+    'Creator' => {
+      type => 'user',
+      data => 'createauthor',
+      search => 'createauthor',
+      sort => 'createauthor',
+    },
+    'qmstate_id' => 'state',
+    'workflow' => 'state',
+    'workflowstate' => 'state',
+    'publishdate' => {
+      type => 'date',
+      data => 'field_PublishDate_dt',
+      search => 'field_PublishDate_search',
+      sort => 'field_PublishDate_dt',
+    },
+    'publishauthor' => {
+      type => 'user',
+      data => 'field_PublishAuthor_lst',
+      search => 'field_PublishAuthor_lst',
+      sort => 'field_PublishAuthor_sort',
+    },
+    'publishauthor_title' => {
+      type => 'default',
+      data => 'field_PublishAuthor_title_lst',
+      search => 'field_PublishAuthor_title_search',
+      sort => 'field_PublishAuthor_title_sort',
+    },
+
+    #'qmstate' => 'qmstate.title',
+    #'qmstate_id' => 'qmstate.id',
+    #'qmstate_pendingApprover' => 'qmstate.pendingApprover',
+    #'qmstate_reviewers' => 'qmstate.reviewers',
   };
 
   return $this;
@@ -68,48 +152,86 @@ sub new {
 
 =begin TML
 
----++ ClassMethod column2Property( $columnName ) -> $propertyName
+---++ ClassMethod getColumnDescription( $columnName, $formDef ) -> $propertyName
 
 maps a column name to the actual property in the store. 
 
 =cut
 
-# sub column2Property {
-#   my ($this, $columnName) = @_;
-#
-#   my $propertyName = $this->{propertyMap}{$columnName};
-#
-#   unless (defined $propertyName) {
-#   }
-#
-#   return $propertyName || $columnName;
-# }
+sub getColumnDescription {
+  my ($this, $columnName, $formDef) = @_;
 
-=begin TML
+  return unless defined $columnName;
 
----++ ClassMethod property2Column( $propertyName ) -> $columnName
+  $columnName =~ s/^#//;
 
-this strips of all solr prefixes and postfixes to get back the original formfield name
+  my $desc = $this->{columnDescription}{$columnName};
 
-=cut
+  # special solr fields
+  return {
+    type => $columnName =~ /^(score|version|size|width|height|likes|dislikes|total_likes)$ / ? 'number': 'default',
+    data => $columnName,
+    search => $columnName,
+    sort => $columnName,
+  } if !$desc && $columnName =~ /^(index|size|width|height|language|id|url|source|type|web|topic|title|webcat|webtopic|icon|thumbnail|container_.*|summary|contributor|version|text|state|likes|dislikes|total_likes|parent|form)$/;
 
-sub property2Column {
-  my ($this, $propertyName) = @_;
+  my $fieldDef;
+  $fieldDef = $formDef->getField($columnName) if $formDef;
 
-  return unless defined $propertyName;
+  # TODO:
+  # preferences. macros, attachments
 
-  my $columnName = $propertyName;
-  $columnName =~ s/^field_//g;
-  $columnName =~ s/_(?:s|search|dt|lst|f)$//g;
+  if (defined $desc) {
+    unless (ref($desc)) {
+      $desc = {
+        type => "default",
+        data => $desc,
+        search => $desc,
+        sort => $desc,
+      };
+    }
+    return $desc;
+  } 
 
-  return $columnName;
+  my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
+  my $dataField = $searcher->getSolrFieldNameOfFormfield($fieldDef||$columnName);
+  my $fieldType = $fieldDef ? "formfield" : "default";
+
+  my $searchField = $dataField;
+  my $sortField = $dataField;
+
+  if ($fieldDef && $fieldDef->{type} =~ /^(topic|user)/) {
+    $searchField =~ s/^(.*)_(s|lst)$/$1_title_search/;
+    $sortField =~ s/^(.*)_(s|lst)$/$1_title_sort/;
+  } elsif ($dataField =~ /_(d|i|l|b|f)$/) {
+    $searchField = $sortField = $dataField;
+    $fieldType = "number";
+  } elsif ($dataField =~ /_dt$/) {
+    $searchField =~ s/_dt$//;
+    $searchField .= '_search';
+    $fieldType = "date";
+  } else {
+    $searchField =~ s/^(.*)_(s|lst)$/$1_search/;
+    $sortField =~ s/^(.*)_(s|lst)$/$1_sort/;
+  }
+
+  $desc = {
+    type => $fieldType,
+    data => $dataField,
+    search => $searchField,
+    sort => $sortField,
+  };
+
+  #print STDERR "$columnName: type=$desc->{type}, data=$desc->{data}, search=$desc->{search}, sort=$desc->{sort}\n";
+  return $desc;
 }
 
 =begin TML
 
 ---++ ClassMethod buildQuery() -> $query
 
-creates a query based on the current request
+creates a query based on the current request, only returns the pure string for the q parameter
+of solr. any other filters are stored in $this->{_filterQuery} and used in search()
 
 =cut
 
@@ -117,29 +239,56 @@ sub buildQuery {
   my ($this, $request) = @_;
 
   my @query = ();
+  my @filterQuery = ();
+  $this->{_filterQuery} = '';
 
-  my $form = $request->param("form") || "";
-  $form =~ s/\//./g;
-  push @query, "form:'$form'" if $form;
+  my $formDef;
+  my $form = $request->param("form");
+  if ($form) {
+    my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $form);
+    $formWeb =~ s/\//./g;
 
-  my $web = $request->param("web") || "";
-  $web =~ s/\//./g;
-  push @query, "web:$web" if $web;
+    push @filterQuery, "form:*.$formTopic";
+
+    $formDef = $this->getForm($formWeb, $formTopic);
+    writeDebug("formDef found for $form") if $formDef;
+    writeDebug("formDef NOT found for $form") unless $formDef;
+  } else {
+    writeDebug("no form in query");
+  }
+
+  my @webs = map { my $tmp = $_; $tmp =~ s/\//./g; $tmp } split (/\s*,\s*/, $request->param("webs") || '');
+  if (scalar(@webs) == 1) {
+    push @filterQuery, "web:$webs[0]";
+  } elsif (scalar(@webs) > 1) {
+    push @filterQuery, "web:(".join(" OR ", @webs).")";
+  }
+
+  my @topics = split(/\s*,\s*/, $request->param("topics") || '');
+  if (scalar(@topics) == 1) {
+    push @filterQuery, "topic:$topics[0]";
+  } elsif (scalar(@topics) > 1) {
+    push @filterQuery, "topic:(".join(" OR ", @topics).")";
+  }
+
+  my $include = $request->param("include");
+  push @filterQuery, "topic:/" . join("|", split(/\s*,\s*/, $include)) . "/" if $include;
+
+  my $exclude = $request->param("exclude");
+  push @filterQuery, "-topic:/" . join("|", split(/\s*,\s*/, $exclude)) . "/" if $exclude;
 
   my @columns = $this->getColumnsFromRequest($request);
 
   # build global filter
   my $globalFilter = $request->param('search[value]') || '';
-  my $regexFlag = ($request->param("search[regex]") || 'false') eq 'true' ? 1 : 0;    # TODO
+  my $regexFlag = ($request->param("search[regex]") || 'false') eq 'true' ? 1 : 0; 
 
-  $globalFilter =~ s/\*+$//g;
-  $globalFilter .= "*";
+  $globalFilter =~ s/\s*$/*/ unless $regexFlag || $globalFilter eq '' || $globalFilter =~ /\b(AND|OR|NOT)\b|["']|([\*\+\~\/]\s*$)/;
   push @query, $globalFilter;
 
   # build column filter
   foreach my $column (@columns) {
     next unless $column->{searchable};
-    next if $column->{data} =~ /^(?:date|createdate)$/;                               # SMELL
 
     my $filter = $column->{search_value};
     next if !defined($filter) || $filter eq "";
@@ -148,34 +297,25 @@ sub buildQuery {
 
     $filter = Foswiki::Plugins::JQDataTablesPlugin::Connector::urlDecode($filter);
 
-    # TODO: this needs to add field_ and _s/_dt/_lst prefixes
-    my $propertyName = $this->column2Property($column->{data});
-
-    my @includeFilter = ();
-    my @excludeFilter = ();
-
-    foreach my $part (split(/\s+/, $filter)) {
-      $part =~ s/^\s+|\s+$//g;
-      my $neg = 0;
-
-      if ($part =~ /^-(.*)$/) {
-        $part = $1;
-        $neg = 1;
-      }
-      $part =~ s/\*+$//g;
-      $part .= "*";
-
-      if ($neg) {
-        push @excludeFilter, $propertyName . ':' . $part;
-      } else {
-        push @includeFilter, $propertyName . ':' . $part;
-      }
+    my $neg = "";
+    if ($filter =~ /^-(.*)$/) {
+      $filter = $1;
+      $neg = "-";
     }
 
-    push @query, "(" . join(" AND ", @includeFilter) . ")"
-      if @includeFilter;
-    push @query, "NOT (" . join(" AND ", @excludeFilter) . ")"
-      if @excludeFilter;
+    my $desc = $this->getColumnDescription($column->{data}, $formDef);
+    #print STDERR "column=$column->{data}, desc->{type}=$desc->{type}, desc->{data}=$desc->{data}, desc->{search}=$desc->{search}\n";
+
+    if ($regexFlag) {
+      push @query, $neg . $desc->{search} . ':/' . $filter . '/';
+    } else {
+      $filter =~ s/\s*$/*/ unless 
+          $filter eq '' 
+          || $desc->{type} =~ /^(number|score)/ 
+          || $filter =~ /\b(AND|OR|NOT)\b|["']|([\*\+\~\/]\s*$)/;
+
+      push @query, $neg . $desc->{search} . ':(' . $filter . ')';
+    }
   }
 
   # plain query
@@ -183,11 +323,31 @@ sub buildQuery {
 
   my $query = "";
   $query = join(' ', @query) if @query;
-
   writeDebug("query=$query");
+
+  $this->{_filterQuery} = join(' ', @filterQuery);
+  writeDebug("filterQuery=$this->{_filterQuery}");
 
   return $query;
 }
+
+=begin TML
+
+---++ ClassMethod getValueOfResult( $doc, $property, $fieldDef ) -> $value
+
+get a property of a result document
+
+=cut
+
+sub getValueOfResult {
+  my ($this, $doc, $property, $fieldDef) = @_;
+
+  my $val = join(", ", $doc->values_for($property));
+
+#print STDERR "$property=".($val//'undef')."\n";
+  return $val;
+}
+
 
 =begin TML
 
@@ -200,125 +360,76 @@ perform the actual search and fetch result
 sub search {
   my ($this, %params) = @_;
 
+  my $formDef;
+  $formDef = $this->getForm(undef, $params{form}) if $params{form};
+
   my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
 
-  my $index = $params{skip} || 0;
-  my @data = ();
-  my $totalFiltered;
+  my @sort = ();
+  my %isReverse = map {$_ => 1} split(/\s*,\s*/, $params{reverse});
 
-  #my @queryFields = map {$this->column2Property($_)} @{$params{fields}};
+  foreach my $s (split(/\s*,\s*/, $params{sort})) {
+    my $desc = $this->getColumnDescription($s, $formDef);
+    my $sort = $desc->{sort};
+    if ($sort =~ /_dt$/ && !$isReverse{$s}) {
+      $sort = "def($sort,999999999999999999)"; # sort empty dates last no matter what
+    }
+    push @sort,  $sort. " " . ($isReverse{$s} ? "desc" : "asc");
+  }
+
+  my @fl = ();
+  foreach my $f (@{$params{fields}}) {
+    my $desc = $this->getColumnDescription($f, $formDef); 
+    push @fl, $desc->{data};
+  }
+  push @fl, "form", "web", "topic, score";
+
+
+  my @qf = ();
+  foreach my $f (@fl) {
+    next if $f =~ /^(index|score|date)$/;
+
+    if ($f =~ /^(.*)_s$/ || $f =~ /^(topic|title)$/) {
+      push @qf, $1 . "_search";
+    } else {
+      push @qf, $f;
+    }
+  }
+
+  writeDebug("qf=@qf");
+  writeDebug("q=$params{query}");
+
+  my @data = ();
+  my $start = $params{skip} || 0;
+  my $index = $start;
+  my $totalFiltered;
+  my $limit = $params{limit} || 0;
+  $limit = 0 if $limit < 0;
 
   $searcher->iterate({
       q => $params{query},
-      fl => [map { $this->column2Property($_) } @{$params{fields}}, "form"],
-      sort => $params{sort} . ' ' . ($params{reverse} eq 'on' ? "desc" : "asc"),
-      start => $params{skip} || 0,
-      limit => $params{limit} || 0,
+      fq => $this->{_filterQuery},
+      fl => \@fl,
+      qf => \@qf,
+      sort => join(", ", @sort),
+      start => $start,
+      limit => $limit,
     },
     sub {
       my $doc = shift;
       my $numFound = shift;
 
       $index++;
-
       $totalFiltered = $numFound unless defined $totalFiltered;
 
-      my $topic = $doc->value_for("topic");
-      my $formName = $doc->value_for("form");
+      my $row = $this->convertResult(
+        fields => $params{fields}, 
+        result => $doc, 
+        index => $index, 
+        formDef => $formDef
+      );
 
-      my $formDef;
-      if ($formName) {
-
-        # catch an no_form_def oops
-        try {
-          $formDef = new Foswiki::Form($this->{session}, $params{web}, $formName);
-        }
-        catch Foswiki::OopsException with {
-          my $error = shift;
-          print STDERR "error: $error\n";
-          $formDef = undef;
-        };
-      }
-
-      my %row = ();
-
-      foreach my $fieldName (@{$params{fields}}) {
-        my $propertyName = $this->column2Property($fieldName);    # TODO
-        next if !$propertyName || $propertyName eq '#';
-
-        my $isEscaped = substr($fieldName, 0, 1) eq '/' ? 1 : 0;
-
-        my $cell = join(", ", $doc->values_for($propertyName));
-
-        #writeDebug("fieldName=$fieldName, propertyName=$propertyName");
-
-        if (!$isEscaped && $propertyName eq 'index') {
-          $cell = {
-            "display" => "<span class='rowNumber'>$index</span>",
-            "raw" => $index,
-          };
-        } elsif (!$isEscaped && $propertyName =~ /^(Date|date|createdate)$/) {
-          my $epoch = Foswiki::Time::parseTime($cell);
-          my $html =
-            $cell
-            ? "<span style='white-space:nowrap'>" . Foswiki::Time::formatTime($epoch) . "</span>"
-            : "";
-          $cell = {
-            "display" => $html,
-            "epoch" => $epoch || 0,
-            "raw" => Foswiki::Time::formatTime($epoch || 0),
-          };
-        } elsif (!$isEscaped && $propertyName eq 'topic') {
-          $cell = {
-            "display" => "<a href='" . Foswiki::Func::getViewUrl($params{web}, $topic) . "' style='white-space:nowrap'>$topic</a>",
-            "raw" => $topic,
-          };
-        } elsif (!$isEscaped && $propertyName eq 'title') {
-          $cell = {
-            "display" => "<a href='" . Foswiki::Func::getViewUrl($params{web}, $topic) . "'>$cell</a>",
-            "raw" => $cell,
-          };
-
-          # TODO
-          # elsif author
-          # elsif image
-          # elsif email
-          # elsif score
-        } else {
-
-          my $html = $cell;
-
-          # try to render it for display
-          my $formfieldName = $this->property2Column($fieldName);
-          my $fieldDef = $formDef->getField($formfieldName)
-            if $formDef;
-
-          if ($fieldDef) {
-
-            # patch in a random field name so that they are different on each row
-            # required for older JQueryPlugins
-            my $oldFieldName = $fieldDef->{name};
-            $fieldDef->{name} .= int(rand(10000)) + 1;
-
-            if ($fieldDef->can("getDisplayValue")) {
-              $html = $fieldDef->getDisplayValue($cell);
-            } else {
-              $html = $fieldDef->renderForDisplay('$value(display)', $cell, undef, $params{web}, $topic);
-            }
-            $html = Foswiki::Func::expandCommonVariables($html, $topic, $params{web});
-
-            # restore original name in form definition to prevent sideeffects
-            $fieldDef->{name} = $oldFieldName;
-          }
-
-          $cell = {
-            "display" => $html,
-            "raw" => $cell,
-          };
-        }
-        $row{$fieldName} = $cell;
-      }
-      push @data, \%row;
+      push @data, $row if $row;
     }
   );
 

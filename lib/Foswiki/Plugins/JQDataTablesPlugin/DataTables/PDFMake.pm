@@ -13,7 +13,7 @@
 # GNU General Public License for more details, published at
 # http://www.gnu.org/copyleft/gpl.html
 
-package Foswiki::Plugins::JQDataTablesPlugin::DataTables::Responsive;
+package Foswiki::Plugins::JQDataTablesPlugin::DataTables::PDFMake;
 
 use strict;
 use warnings;
@@ -29,13 +29,12 @@ sub new {
   return bless(
     $class->SUPER::new(
       $session,
-      name => 'DataTablesResponsive',
-      version => '2.2.2',
-      author => 'SpryMedia Ltd',
-      homepage => 'http://datatables.net/',
-      puburl => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin',
-      css => ['Responsive/css/responsive.dataTables.min.css'],
-      javascript => ['Responsive/js/dataTables.responsive.min.js'],
+      name => 'DataTablesPDFMake',
+      version => '0.1.36',
+      author => 'bpampuch',
+      homepage => 'http://pdfmake.org/',
+      puburl => '%PUBURLPATH%/%SYSTEMWEB%/JQDataTablesPlugin/pdfmake',
+      javascript => ['pdfmake.min.js', 'vfs_fonts.js'],
       dependencies => ['datatables'],
     ),
     $class
@@ -43,4 +42,3 @@ sub new {
 }
 
 1;
-

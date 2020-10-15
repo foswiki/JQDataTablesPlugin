@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1561977839" format="1.1" reprev="2" version="2"}%
+%META:TOPICINFO{author="micha" comment="reprev" date="1568653168" format="1.1" reprev="4" version="4"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -23,7 +23,7 @@ at the moment based on the additional functionality installed on your Foswiki:
    * =dbcache=: this one uses [[Foswiki:Extensions/DBCachePlugin][DBCachePlugin]] which is implementing a faster still native search, also available via its %DBQUERY macro
    * =solr=: this connector uses the [[Foswiki:Extensions/SolrPlugin][SolrPlugin]] which uses a Solr fulltext search engine integrated into Foswiki.
 
-A default connector can be defined as required. Note however, that even though %DATATGABLE tries to hide the differences of available connectors
+A default connector can be defined as required. Note however, that even though %DATATABLE tries to hide the differences of available connectors
 behind the scene, connectors will behave differently, i.e. when it comes to filtering. Also, performance is vastly different with the =search= connector being the slowest
 one. It is strongly recommended that you at least install [[Foswiki:Extensions/DBCachePlugin][DBCachePlugin]] for acceptable performance in every-day usage.
 
@@ -43,7 +43,11 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =class= | additional css class to be added to the widget in addition to =foswikiTable= | |
 | =width= | width of table, e.g. =100%= and the like | |
 | =web=, =webs= | web or list of webs to query for data | current web |
+| =topics= | list of topics to query per web | |
+| =include= | regular expression topics must match to be included | |
+| =exclude= | regular expression topics must _not_ match to be included | |
 | =form= | data form definition | |
+| =buttons= | list of buttons to add; available buttons are: =print=, =csv=, =excel=, =copy=, =pdf= | |
 | =paging=, =pager= | switch on/off paging data; NOTE: this parameter is deactivated when =scrolling= is specifed as well (see [[https://datatables.net/reference/option/paging][docu]]) | =off= |
 | =pagelength=, =rows= | number of rows to be displayed when =paging= is enabled (see [[https://datatables.net/reference/option/pageLength][docu]]) | =10= |
 | =lengthmenu= | switches on a menu element to change the page length (see [[https://datatables.net/reference/option/lengthMenu][docu]]) | =[10, 25, 50, 100]= |
@@ -63,6 +67,7 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =rowgroup= | comma-separated list of columns that should be used to create groups of rows | |
 | =selecting= | switch on/off [[https://datatables.net/extensions/select/][select extension]] | |
 | =selectproperty= | specifies the property of a row to be selected when =selection= is enabled | =topic= |
+| =selectname= | specifies the name of the data be submitted when =selection= is enabled | =&lt;selectproperty>= |
 | =selectmode= | possible values are =os=, =single=, =multi=, this specifies the way a selection is made (see [[https://datatables.net/reference/option/select.style][docu]]) | =multi= |
 | =responsive= | switch on/off [[https://datatables.net/extensions/responsive/][responsive extension]] | |
 | =fixedheader= | switch on/off [[https://datatables.net/extensions/fixedheader/][fixed header extension]] | |
@@ -88,7 +93,7 @@ the formfield. There are however a few column names that have a special meaning 
    * =publishdate=: date when the =publishauthor= created the initial revision, defaults to =createdate= in case there is no explicut =PublishDate= field in the form
    * =Worflow=: name of the workflow assigned to a topic
    * A column name starting with a =/= (slash) will be excluded from any special treatment, i.e. =/Author= will _not_ be interpreted as the author of the recent topic revision, but as the =Author= formfield of a !DataForm (see below example).
-   
+
 ---++ HTML5
 
 A data table can also be applied to an already existing table enhancing it with additional features such as paging, client-side sorting, searching etc.
@@ -338,6 +343,10 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  15 Oct 2020: | added =buttons= parameter and excel export; \
+                  added parameters =topics=, =include= and =exclude= to =DATATABLE= macro; \
+                  added support for multi-dimensional sorting (only available for <nop>DBCachePlugin connector); \
+                  redesign of connector classes for better sortability & searchability: fixes SEARCH and SOLR backends |
 |  01 Jul 2019: | updated to latest upstream version of !Datatables; added parameters =rowgroup=, =rowclass=, =rowcss=, =hidecolumns= and =autocolor= |
 |  07 Jan 2019: | added =webs= parameter to =DATATABLE= to query multiple webs at once |
 |  26 Nov 2018: | add docu for newly added =savestate= parameter to =DATATABLE=; fixed rendering image columns in <nop>DBCacheConnector |
@@ -368,7 +377,7 @@ Click on the table headers to sort the columns according to their data type.
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="2012 SvenDowideit@fosiki.com, 2013-2019 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012 SvenDowideit@fosiki.com, 2013-2020 Michael Daum"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
 %META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25TOPIC%25"}%
 %META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25TOPIC%25"}%

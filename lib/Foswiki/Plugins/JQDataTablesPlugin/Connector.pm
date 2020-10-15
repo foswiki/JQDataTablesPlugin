@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2019 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2020 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ sub new {
 
   my $this = {
     session => $session,
-    propertyMap => {},
+    columnDescription => {},
   };
 
   return bless($this, $class);
@@ -48,7 +48,7 @@ url parameter as provided by the GRID widget.
 =cut
 
 sub restHandleSave {
-  die "restHandleSave not implemented";
+  die "not implemented";
 }
 
 =begin TML
@@ -60,8 +60,41 @@ creates a query based on the current request
 =cut
 
 sub buildQuery {
-  die "buildQuery not implemented";
+  die "not implemented";
 }
+
+
+=begin TML
+
+---++ ClassMethod convertResult( %params ) -> \%rows
+
+convert a result to a rows for datatable.
+
+params:
+
+   * fields: list of fields to extract
+   * result: result object (e.g. a solr document)
+   * index: row number of the result being rendered
+   * formDef (optional): form definition of all items in the result set
+
+=cut
+
+sub convertResult {
+  die "not implemented";
+}
+
+=begin TML
+
+---++ ClassMethod getValueOfResult( $doc, $property, $fieldDef ) -> $value
+
+get a property of a result document
+
+=cut
+
+sub getValueOfResult {
+  die "not implemented";
+}
+
 
 =begin TML
 
@@ -72,7 +105,7 @@ perform the actual search and fetch result
 =cut
 
 sub search {
-  die "search not implemented";
+  die "not implemented";
 }
 
 =begin TML
@@ -94,6 +127,7 @@ sub restHandleSearch {
   my $web = $request->param("web") || $this->{session}{webName};
   my $topic = $request->param("topic") || $this->{session}{topicName};
   my $webs = $request->param("webs");
+  my $context = $request->param("context");
 
   ($web, $topic) = Foswiki::Func::normalizeWebTopicName($web, $topic);
 
@@ -108,22 +142,28 @@ sub restHandleSearch {
     push @webs, $web;
   }
 
+  my $topics = $request->param("topics");
+  $topics = [split(/\s*,\s*/, $topics)] if $topics;
+
+  my $include = $request->param("include") // '';
+  my $exclude = $request->param("exclude") // '';
+
+  $this->{_protectedColumns} = {map {$_ => 1} split(/\s*,\s*/, $request->param("protected-columns") // '')};
+
   my $query = $this->buildQuery($request);
 
   my @fields = ();
-  my $sort = "";
-  my $reverse = "off";
-  my $i = 0;
+  my @reverse = ();
 
   my @columns = $this->getColumnsFromRequest($request);
   foreach my $column (@columns) {
     my $fieldName = $column->{name};
-    $sort = $fieldName
-      if ($request->param("order[0][column]") || 0) eq $i;
-    $reverse = "on" if ($request->param("order[0][dir]") || "") eq "desc";
     push @fields, $fieldName;
-    $i++;
+    push @reverse, $fieldName if $column->{_reverse};
+    #print STDERR "fieldName=$fieldName, searchable=".($column->{searchable}//'undef').",sorted=".($column->{_sorted}//'undef').", reverse=".($column->{_reverse}//'undef')."\n";
   }
+
+  my @sort = map {$_->{name}} sort {$a->{_sorted} <=> $b->{_sorted}} grep {defined $_->{_sorted}} @columns;
 
   my $totalRecords = 0;
   my $totalDisplayRecords = 0;
@@ -133,13 +173,17 @@ sub restHandleSearch {
     web => $web,
     topic => $topic,
     webs => \@webs,
+    topics => $topics,
+    include => $include,
+    exclude => $exclude,
     query => $query,
-    sort => $sort,
-    reverse => $reverse,
+    sort => join(", ", @sort),
+    reverse => join(", ", @reverse),
     fields => \@fields,
     limit => $limit,
     skip => $skip,
     form => $form,
+    context => $context,
   );
 
   my $result = {
@@ -156,21 +200,45 @@ sub restHandleSearch {
 
 =begin TML
 
----++ ClassMethod column2Property( $columnName ) -> $propertyName
+---++ ClassMethod getColumnDescription( $columnName, $formDef ) -> \%desc
 
-maps a column name to the actual property in the store. 
+describe the kind of data for a column as available in the store. this returns
+a description has 
+
+{
+  type => "date|user|topic|formfield|default|image|icon|email|index|score|number", 
+  data => "...", # access to the raw data
+  search => "...", # data that is being searched for
+  sort => "...", # data in a sortable fashion
+}
 
 =cut
 
-sub column2Property {
-  my ($this, $columnName) = @_;
+sub getColumnDescription {
+  my ($this, $columnName, $formDef) = @_;
 
   return unless defined $columnName;
+  my $desc;
 
   # escape column name to disambiguate property names from formfield names
-  return $columnName if $columnName =~ s/^\///;
+  if ($columnName =~ /^\/(.*)$/) {
+    $desc = $1;
+  } else {
+    $columnName =~ s/^#//;
+    my $desc = $this->{columnDescription}{$columnName};
+    return unless defined $desc;
+  }
 
-  return $this->{propertyMap}{$columnName} || $columnName;
+  unless (ref($desc)) {
+    $desc = {
+      type => "default",
+      data => $desc,
+      search => $desc,
+      sort => $desc,
+    };
+  }
+
+  return $desc;
 }
 
 =begin TML
@@ -182,27 +250,77 @@ transmitted by the Datatables client
 
 =cut
 
+#use Data::Dump qw(dump);
 sub getColumnsFromRequest {
   my ($this, $request) = @_;
 
   my @columns = ();
+  my @order = ();
   my @params = $request->param();
+
   foreach my $key (@params) {
-    next unless $key =~ /^columns\[(\d+)\]\[(.*)\]$/;
-    my $index = $1;
-    my $prop = $2;
-    my $val = $request->param($key);
+    next unless $key =~ /^(columns|order)\[(\d+)\]\[(.*)\]$/;
+    my $type = $1;
+    my $index = $2;
+    my $prop = $3;
     $prop =~ s/[\[\]]+/_/g;
+
+    my $val = $request->param($key);
 
     if ($val =~ /^(true|false)$/) {
       $val = $val eq 'true' ? 1 : 0;
     }
 
     #print STDERR "key=$key, index=$index, prop=$prop, val=$val\n";
-    $columns[$index]{$prop} = $val;
+
+    if ($type eq 'columns') {
+      $columns[$index]{$prop} = $val;
+    } else {
+      $order[$index]{$prop} = $val;
+    }
   }
 
+  my $index = 1;
+  foreach my $order (@order) {
+    my $col = $order->{column};
+    $columns[$col]{_sorted} = $index++;
+    $columns[$col]{_reverse} = $order->{dir} eq 'desc' ? 1 : 0;
+  }
+
+  #print STDERR dump(\@columns) . "\n";
+  #print STDERR dump(\@order) . "\n";
+
   return @columns;
+}
+
+=begin TML
+
+---++ ClassMethod translate($string, $web, $topic) -> $string
+
+translate string to user's current language
+
+=cut
+
+sub translate {
+  my ($this, $string, $web, $topic) = @_;
+
+  return $string if $string =~ /^<\w+ /; # don't translate html code
+
+  my $result = $string;
+
+  $string =~ s/^_+//;    # strip leading underscore as maketext doesnt like it
+
+  my $context = Foswiki::Func::getContext();
+  if ($context->{'MultiLingualPluginEnabled'}) {
+    require Foswiki::Plugins::MultiLingualPlugin;
+    $result = Foswiki::Plugins::MultiLingualPlugin::translate($string, $web, $topic);
+  } else {
+    $result = $this->{session}->i18n->maketext($string);
+  }
+
+  $result //= $string;
+
+  return $result;
 }
 
 =begin TML
@@ -221,30 +339,30 @@ sub urlDecode {
 
 =begin TML
 
----++ ClassMethod translate($string, $web, $topic) -> $string
+---++ ClassMethod isValueMapped( $fieldDef ) -> $boolean
 
-translate string to user's current language
+should be in FieldDefinition
 
 =cut
 
-sub translate {
-  my ($this, $string, $web, $topic) = @_;
+sub isValueMapped {
+  my ($this, $fieldDef) = @_;
 
-  my $result = $string;
+  return $fieldDef ? $fieldDef->can("isValueMapped") ? $fieldDef->isValueMapped() : $fieldDef->{type} =~ /\+values/ : 0;
+}
 
-  $string =~ s/^_+//; # strip leading underscore as maketext doesnt like it
+=begin TML
 
-  my $context = Foswiki::Func::getContext();
-  if ($context->{'MultiLingualPluginEnabled'}) {
-    require Foswiki::Plugins::MultiLingualPlugin;
-    $result = Foswiki::Plugins::MultiLingualPlugin::translate($string, $web, $topic);
-  } else {
-    $result = $this->{session}->i18n->maketext($string);
-  }
+---++ ClassMethod isProtected( $colname ) -> $boolean
 
-  $result //= $string;
+returns true if the column is supposed to be be protected
 
-  return $result;
+=cut
+
+sub isProtected {
+  my ($this, $colName) = @_;
+
+  return exists $this->{_protectedColumns}{$colName} ? 1:0;
 }
 
 1;

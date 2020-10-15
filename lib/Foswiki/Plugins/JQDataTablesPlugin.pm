@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 # 
-# JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2019 Michael Daum http://michaeldaumconsulting.com
+# JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2020 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,13 +21,17 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '5.00';
-our $RELEASE = '01 Jul 2019';
+our $VERSION = '6.20';
+our $RELEASE = '15 Oct 2020';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 
 sub initPlugin {
 
-  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesAutoButtons', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::Buttons');
+  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesButtons', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::Buttons');
+  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesAutoButtons', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::Buttons'); # DEPRECATED
+  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesPDFMake', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::PDFMake');
+  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesJSZip', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::JSZip');
+
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesAutoFill', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::AutoFill');
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesColReorder', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::ColReorder');
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesFixedColumns', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::FixedColumns');
@@ -38,9 +42,7 @@ sub initPlugin {
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesScroller', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::Scroller');
   Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesRowGroup', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::RowGroup');
 
-  #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesJSZip', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::JSZip');
   #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesKeyTable', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::KeyTable');
-  #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesPDFMaker', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::PDFMaker');
   #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesRowReorder', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::RowReorder');
 
   Foswiki::Func::registerTagHandler('DATATABLE', \&handleDataTable);
@@ -79,10 +81,12 @@ sub restConnector {
     return '';
   }
 
-  eval "require $connectorClass";
+  my $path = $connectorClass.'.pm';
+  $path =~ s/::/\//g;
+  eval {require $path};
   if ($@) {
     printRESTResult($response, 500, "ERROR: loading connector");
-    #print STDERR "ERROR loading connector $connectorClass: $@\n";
+    print STDERR "ERROR loading connector $connectorClass: $@\n";
     return '';
   }
 

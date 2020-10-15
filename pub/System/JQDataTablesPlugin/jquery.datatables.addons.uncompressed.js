@@ -276,12 +276,13 @@ jQuery(function($) {
   $.extend($.fn.dataTable.defaults, {
     "jQueryUI": true,
     "searching": false,
+    "searchDelay": 1000,
     "info": false,
     "lengthChange": false,
     "paging": false,
     "processing": true,
     "stateDuration": -1,
-    "dom": '<"'+toolbar_prefix+'tl ui-corner-tr"lfr>'+
+    "dom": 'B<"'+toolbar_prefix+'tl ui-corner-tr"lfr>'+
             't'+
             '<"'+toolbar_prefix+'bl ui-corner-br"ip>',
     renderer: 'jqueryui',
@@ -344,6 +345,7 @@ jQuery(function($) {
       "sJUIFooter": _headerFooter+" ui-corner-bl ui-corner-br"
   });
 
+  $.fn.dataTable.ext.errMode = 'none'; // do nothing here: the server already responds with a http 500
   $.fn.dataTable.ext.renderer.header.jqueryui = function ( settings, cell, column, classes ) {
 
      // Calculate what the unsorted class should be
@@ -403,8 +405,9 @@ jQuery(function($) {
      } );
   };
 
-  $('.jqDataTablesContainer').livequery(function() {
-    var $container = $(this), 
+  $('.jqDataTablesContainer table').livequery(function() {
+    var $table = $(this),
+        $container = $table.parents(".jqDataTablesContainer:first"), 
         opts = $.extend({}, $container.metadata(), $container.data()),
 	rowCallbacks = [];
 
@@ -425,12 +428,12 @@ jQuery(function($) {
 
     if (opts.scroller) {
       $.fn.dataTable.defaults.dom =
-        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"fr>'+
+        'B<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"fr>'+
         't'+
         '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"i>';
     } else {
       $.fn.dataTable.defaults.dom =
-        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"frl>'+
+        'B<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"frl>'+
         't'+
         '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"ip>';
     }
@@ -439,14 +442,13 @@ jQuery(function($) {
     if (opts.searchMode === 'multi') {
       // remove global filter filed in multi search ... is there an easier way to do this???
       opts.dom =
-        '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"rl>'+
+        'B<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"rl>'+
         't'+
         '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"ip>';
     }
 
-    $container.addClass("jqDataTablesContainerInited").find("table").each(function() {
-      var $table = $(this), 
-          dt, 
+    $table.each(function() {
+      var dt, 
           rowSelection = {},
           timeoutId;
 
@@ -460,9 +462,6 @@ jQuery(function($) {
           $this.append(num?"<span class='select-info'>, " + num + " selected</span>":"");
         });
       }
-
-      // prevent it from being processed by JQTablePlugin
-      $table.addClass("foswikiTableInited");
 
       // clean up stripes added by the server 
       $table.find(".foswikiTableEven, .foswikiTableOdd").removeClass("foswikiTableEven foswikiTableOdd");
@@ -569,6 +568,23 @@ jQuery(function($) {
         });
       }
 
+      // add error handler for ajax obj
+      if (typeof(opts.ajax) !== 'undefined') {
+        opts.ajax.complete = function(xhr, status, err) {
+          var text;
+          if (status === 'error') {
+            text = xhr.responseText.replace(/ at .*/, "");
+            $.pnotify({
+              title: "Server Error",
+              text: text,
+              type: "error"
+            });
+          } else {
+            $.pnotify_remove_all();
+          }
+        };
+      }
+
       // instantiate
       dt = $table.DataTable(opts);
       //window.dt = dt; // playground
@@ -636,13 +652,22 @@ jQuery(function($) {
           }
           timeoutId = window.setTimeout(function() {
             dt.draw();
-          }, 400); // dunno how to access searchDelay settings
+          }, opts.searchDelay); 
         }
 
         return false;
       }).on("keydown", function(ev) {
         if (ev.keyCode === 13) {
           return false;
+        }
+      });
+
+      // add css class when processing data serverside
+      dt.on("processing.dt", function(e, settings, processing) {
+        if (processing) {
+          $(dt.table().node()).addClass("processing");
+        } else {
+          $(dt.table().node()).removeClass("processing");
         }
       });
 

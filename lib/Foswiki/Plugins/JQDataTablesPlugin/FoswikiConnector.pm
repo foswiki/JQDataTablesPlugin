@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2019 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2020 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -126,6 +126,255 @@ sub restHandleSave {
 
   # any exceptions are catched by the calling code
   Foswiki::Func::saveTopic($web, $topic, $meta, $text);
+}
+
+=begin TML
+
+sub getForm($web, $topic) -> $formDef
+
+returns a Foswiki::Form for the given web.topic address;
+may return undef when the form does not exist
+
+=cut
+
+sub getForm {
+  my ($this, $web, $topic) = @_;
+
+  return unless $web && $topic;
+
+  my $formDef;
+
+  try {
+    $formDef = new Foswiki::Form($this->{session}, $web, $topic);
+  } catch Error with {
+    # nope
+  };
+
+  return $formDef;
+}
+
+=begin TML
+
+---++ ClassMethod convertResult( %params ) -> \%row
+
+convert a result to a rows for datatable.
+
+This implementation may be shared among all connectors that deal with foswiki data.
+
+=cut
+
+sub convertResult {
+  my ($this, %params) = @_;
+
+  my %row = ();
+  my $formDef = $params{formDef};
+
+  my $wikiName = Foswiki::Func::getWikiName();
+
+  foreach my $fieldName (@{$params{fields}}) {
+
+    my $web = $this->getValueOfResult($params{result}, "web");
+    my $topic = $this->getValueOfResult($params{result}, "topic");
+    my $isEscaped = substr($fieldName, 0, 1) eq '/' ? 1 : 0;
+    my $isLinked = substr($fieldName, 0, 1) eq '#' ? 1 : 0;
+    my $hasWriteAccess;
+
+    unless ($formDef) {
+      my $form = $this->getValueOfResult($params{result}, "form");
+      $formDef = $this->getForm($web, $form);
+    }
+    next unless $formDef;
+
+    my $desc = $this->getColumnDescription($fieldName, $formDef);
+    next if !$desc || $desc->{data} eq '#';
+
+    $isLinked = 1 if $desc->{data} eq 'TopicTitle' || $fieldName eq 'TopicTitle'; # backwards compatibility
+
+    my $fieldDef;
+    $fieldDef = $formDef->getField($fieldName) || $formDef->getField($desc->{data}) if $formDef;
+
+    my $fieldValue = join(", ", $this->getValueOfResult($params{result}, $desc->{data}, $fieldDef));
+    #print STDERR "fieldName=$fieldName, desc=$desc->{data}, fieldValue=$fieldValue\n";
+
+    #print STDERR "$fieldName is protected\n" if $this->isProtected($fieldName);
+
+    # generate cell based on column type
+    my $cell;
+
+    if ($this->isProtected($fieldName)) {
+      unless (defined $hasWriteAccess) {
+        my ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
+        $hasWriteAccess = Foswiki::Func::checkAccessPermission('CHANGE', $wikiName, $text, $topic, $web, $meta) ? 1 : 0
+      }
+      unless ($hasWriteAccess) {
+        $cell = {
+          "display" => '***',
+          "raw" => '***',
+        };
+      }
+    } 
+
+    if (defined $cell) {
+      # nop
+    } elsif ($fieldName eq 'index' || $desc->{type} eq 'index') {
+      $cell = {
+        "display" => "<span class='rowNumber'>$params{index}</span>",
+        "raw" => $params{index},
+      };
+    } elsif ($fieldName eq 'score' || $desc->{type} eq 'score' ) {
+      my $score = $this->getValueOfResult($params{result}, $desc->{data}) || 0;
+      $cell = {
+        "display" => sprintf('%.02f', $score),
+        "raw" => $score,
+      };
+    } elsif (!$isEscaped && (
+        $fieldName =~ /^(Date|Changed|Modified|Created|date|createdate|publishdate)$/ 
+        || ($fieldDef && $fieldDef->{type} =~ /^date/) 
+        || $desc->{type} eq 'date'
+      )) {
+      my $time = "";
+      my $html = "";
+      my $epoch;
+      if ($fieldValue) {
+        $epoch = ($fieldValue =~ /^\-?\d+$/) ? $fieldValue : Foswiki::Time::parseTime($fieldValue);
+        if ($fieldDef && $fieldDef->can("getDisplayValue") && $fieldDef->{type} ne 'date') {    # standard default date formfield type can't parse&format dates
+          $time = $fieldDef->getDisplayValue($fieldValue, $web);
+        } else {
+          my $format;
+          if ($fieldName =~ /^(Changed|Modified|Created|date|createdate)$/) { # SMELL: hardcode datetime vs date format
+            $format = $Foswiki::cfg{DateManipPlugin}{DefaultDateTimeFormat} || $Foswiki::cfg{DefaultDateFormat} . ' - $hour:$min';
+          }
+          $time = Foswiki::Time::formatTime($epoch, $format);
+        }
+
+        $html = "<span style='white-space:nowrap'>$time</span>";
+      }
+      $epoch ||= 0;
+      $cell = {
+        "display" => $html,
+        "epoch" => $epoch,
+        "raw" => $time
+      };
+    } elsif (!$isEscaped && $desc->{data} eq 'topic') {
+      $cell = {
+        "display" => "<a href='" . Foswiki::Func::getViewUrl($web, $topic) . "' style='white-space:nowrap'>$topic</a>",
+        "raw" => $topic,
+      };
+    } elsif (!$isEscaped && (
+        $desc->{data} =~ /^(author|createauthor|publishauthor|qmstate\.(?:pendingReviewers|reviewers))$/ 
+        || ($fieldDef && $fieldDef->{type} eq 'user') 
+        || $desc->{type} eq 'user'
+      )) {
+      my @html = ();
+      foreach my $item (split(/\s*,\s*/, $fieldValue)) {
+        if (Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $item)) {
+          my $topicTitle = Foswiki::Func::getTopicTitle($Foswiki::cfg{UsersWebName}, $item);
+          push @html, "<a href='" . Foswiki::Func::getViewUrl($Foswiki::cfg{UsersWebName}, $item) . "' style='white-space:nowrap'>$topicTitle</a>";
+        } else {
+          push @html, $item;
+        }
+      }
+      $cell = {
+        "display" => join(", ", @html),
+        "raw" => $fieldValue || "",
+      };
+    } elsif (!$isEscaped && (
+        ($fieldDef && $fieldDef->{type} =~ /^(cat|topic)/) 
+        || $desc->{type} eq 'topic'
+      )) {
+
+      my @html = ();
+      foreach my $item (split(/\s*,\s*/, $fieldValue)) {
+        my ($thisWeb, $thisTopic) = Foswiki::Func::normalizeWebTopicName($web, $item);
+        my $html = $fieldDef->getDisplayValue($thisTopic, $thisWeb);
+        $html = Foswiki::Func::expandCommonVariables($html, $thisTopic, $thisWeb) if $html =~ /%/;
+        $html = '<noautolink> ' . $html . ' </noautolink>';    # SMELL: if $params{noautolink}
+        $html = Foswiki::Func::renderText($html, $thisWeb, $thisTopic);
+        push @html, $html;
+      }
+
+      $cell = {
+        "display" => join(", ", @html),
+        "raw" => $fieldValue || "",
+      };
+    } elsif (!$isEscaped && (
+        $fieldName =~ /(Image|Photo|Logo|thumbnail)/
+        || $desc->{type} eq 'image'
+      )) { 
+      my $url = $fieldValue;
+
+      unless ($url =~ /^(http:)|\//) {
+        $url = Foswiki::Func::getPubUrlPath($web, $topic, $fieldValue);
+      }
+      $url =~ s/%PUBURLPATH%/$Foswiki::cfg{PubUrlPath}/g;
+
+      my $html =
+        $fieldValue
+        ? "<img src='$url' style='max-width:100%;max-height:5em' />"
+        : "";
+
+      $cell = {
+        "display" => $html,
+        "raw" => $fieldValue || "",
+      };
+    } elsif (!$isEscaped && ( $desc->{data} =~ /^icon$/i || $desc->{type} eq 'icon')) {
+      my $html = Foswiki::Plugins::JQueryPlugin::handleJQueryIcon($this->{session}, $fieldValue, $topic, $web);
+
+      $cell = {
+        "display" => $html,
+        "raw" => $fieldValue || "",
+      };
+
+    } elsif (!$isEscaped && ($desc->{data} =~ /^email$/i || $desc->{type} eq 'email')) {
+      my $html = $fieldValue ? "<a href='mailto:$fieldValue'>$fieldValue</a>" : "";
+      $cell = {
+        "display" => $html,
+        "raw" => $fieldValue || "",
+      };
+    } else {
+
+      my $html = $fieldValue;
+
+      # try to render it for display
+      if ($fieldDef) {
+
+        # patch in a random field name so that they are different on each row
+        # required for older JQueryPlugins
+        my $oldFieldName = $fieldDef->{name};
+        $fieldDef->{name} .= int(rand(10000)) + 1;
+
+        if ($fieldDef->can("getDisplayValue")) {
+          $html = $fieldDef->getDisplayValue($fieldValue);
+        } else {
+          $html = $fieldDef->renderForDisplay('$value(display)', $fieldValue, undef, $web, $topic);
+        }
+        
+        $html = Foswiki::Func::expandCommonVariables($fieldValue, $topic, $web) if $fieldValue =~ /%/;
+        $html = '<noautolink> ' . $html . ' </noautolink>';    # SMELL: if $params{noautolink}
+        $html = Foswiki::Func::renderText($html, $web, $topic);
+        $html =~ s/<\/?noautolink>//g;
+        $html =~ s/^\s+//g;
+        $html =~ s/\s+$//g;
+        $html = $this->translate($html, $web, $topic) if $this->isValueMapped($fieldDef);
+
+        # restore original name in form definition to prevent sideeffects
+        $fieldDef->{name} = $oldFieldName;
+      }
+
+      if ($isLinked) {
+        $html = "<a href='" . Foswiki::Func::getViewUrl($web, $topic) . "'>$html</a>",
+      }
+
+      $cell = {
+        "display" => $html,
+        "raw" => $fieldValue,
+      };
+    }
+
+    $row{$fieldName} = $cell if $cell;
+  }
+
+  return \%row;
 }
 
 1;
