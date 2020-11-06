@@ -103,6 +103,7 @@ pub/System/JQDataTablesPlugin/jquery.datatables.init.js.gz 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.init.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.js.gz 0644
+pub/System/JQDataTablesPlugin/jquery.datatables.js.patch 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.uncompressed.css 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/JSZip/jszip.js 0644
