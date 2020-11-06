@@ -145,6 +145,7 @@ sub new {
     #'qmstate_id' => 'qmstate.id',
     #'qmstate_pendingApprover' => 'qmstate.pendingApprover',
     #'qmstate_reviewers' => 'qmstate.reviewers',
+    #'qmstate_comments' => 'qmreview.comment',
   };
 
   return $this;

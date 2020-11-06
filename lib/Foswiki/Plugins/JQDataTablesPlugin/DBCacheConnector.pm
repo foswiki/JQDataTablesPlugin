@@ -107,11 +107,25 @@ sub new {
     'qmstate' => 'qmstate.title',
     'qmstate_id' => 'qmstate.id',
     'qmstate_pendingApprover' => 'qmstate.pendingApprover',
+    'qmstate_pendingReviewers' => 'qmstate.pendingReviewers',
+    'qmstate_possibleReviewers' => 'qmstate.possibleReviewers',
     'qmstate_reviewers' => 'qmstate.reviewers',
+    'qmstate_comments' => 'qmreview[comment]',
 
     'workflow' => 'workflow.name',
     'workflowstate' => 'workflow.name',
 
+    'allowchange' => 'preferences.ALLOWTOPICCHANGE',
+    'allowview' => 'preferences.ALLOWTOPICVIEW',
+    'allowapprove' => 'preferences.ALLOWTOPICAPPROVE',
+    'allowcomment' => 'preferences.ALLOWTOPICCOMMENT',
+    'allowcreate' => 'preferences.ALLOWTOPICCREATE',
+
+    'denychange' => 'preferences.DENYTOPICCHANGE',
+    'denyview' => 'preferences.DENYTOPICVIEW',
+    'denyapprove' => 'preferences.DENYTOPICAPPROVE',
+    'denycomment' => 'preferences.DENYTOPICCOMMENT',
+    'denycreate' => 'preferences.DENYTOPICCREATE',
 
     'comments' => {
       type => "number",

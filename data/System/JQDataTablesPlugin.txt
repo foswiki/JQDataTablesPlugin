@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1568653168" format="1.1" reprev="4" version="4"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1568653168" format="1.1" reprev="4" version="1"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -91,8 +91,29 @@ the formfield. There are however a few column names that have a special meaning 
    * =Creator=, =createauthor=, =info.author=: author if the initial topic revision
    * =publishauthor=: author that published the topic, defaults to =createauthor= in case there is no explicit =Author= field in the form
    * =publishdate=: date when the =publishauthor= created the initial revision, defaults to =createdate= in case there is no explicut =PublishDate= field in the form
-   * =Worflow=: name of the workflow assigned to a topic
+   * =worflow=: name of the workflow assigned to a topic
    * A column name starting with a =/= (slash) will be excluded from any special treatment, i.e. =/Author= will _not_ be interpreted as the author of the recent topic revision, but as the =Author= formfield of a !DataForm (see below example).
+   * <nop>QMPlugin fields:
+      * =qmstate=: title of the current workflow state
+      * =qmstate_id=: id of the current workflow state
+      * =qmstate_pendingReviewers=: list of users that still need to action on a state change in a parralel transition 
+      * =qmstate_possibleReviewers=: list of users that might change the current state
+      * =qmstate_pendingApprover=:  list of users that might transition the current state to the "approved" state
+      * =qmstate_reviewers=: list of users that reviewed the current state
+      * =qmstate_comments=: coments of all reviews of the current state
+   * access control settings of the current topic
+      * =allowchange=
+      * =allowview=
+      * =allowapprove=
+      * =allowcomment=
+      * =allowcreate=
+      * =denychange=
+      * =denyview=
+      * =denyapprove=
+      * =denycomment=
+      * =denycreate=
+   * <nop>MetaDataCommentPlugin fields:
+      * =comments=: number of comments of the current topic
 
 ---++ HTML5
 
@@ -343,6 +364,8 @@ Click on the table headers to sort the columns according to their data type.
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  06 Nov 2020: | don't return empty result rows as this breaks jquery.datatables; \
+                  extended documentation of special column names |
 |  15 Oct 2020: | added =buttons= parameter and excel export; \
                   added parameters =topics=, =include= and =exclude= to =DATATABLE= macro; \
                   added support for multi-dimensional sorting (only available for <nop>DBCachePlugin connector); \

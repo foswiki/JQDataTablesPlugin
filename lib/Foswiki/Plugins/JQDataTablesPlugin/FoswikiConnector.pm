@@ -171,6 +171,7 @@ sub convertResult {
 
   my $wikiName = Foswiki::Func::getWikiName();
 
+  my $count = 0;
   foreach my $fieldName (@{$params{fields}}) {
 
     my $web = $this->getValueOfResult($params{result}, "web");
@@ -371,8 +372,12 @@ sub convertResult {
       };
     }
 
-    $row{$fieldName} = $cell if $cell;
+    if ($cell) {
+      $row{$fieldName} = $cell;
+      $count++;
+    }
   }
+  return unless $count;
 
   return \%row;
 }
