@@ -8,8 +8,8 @@
  *   </ul>
  */
 
-(function($) {
 "use strict";
+(function($) {
 
   var mon = new RegExp(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/i);
 

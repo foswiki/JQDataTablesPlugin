@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 # 
-# JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2020 Michael Daum http://michaeldaumconsulting.com
+# JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2022 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,9 +21,10 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '6.30';
-our $RELEASE = '06 Nov 2020';
+our $VERSION = '7.00';
+our $RELEASE = '04 May 2022';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
+our %Connectors = ();
 
 sub initPlugin {
 
@@ -45,7 +46,10 @@ sub initPlugin {
   #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesKeyTable', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::KeyTable');
   #  Foswiki::Plugins::JQueryPlugin::registerPlugin('DataTablesRowReorder', 'Foswiki::Plugins::JQDataTablesPlugin::DataTables::RowReorder');
 
+  Foswiki::Func::registerTagHandler('DATATABLESECTION', \&handleDataTableSection);
+  Foswiki::Func::registerTagHandler('ENDDATATABLESECTION', \&handleEndDataTableSection);
   Foswiki::Func::registerTagHandler('DATATABLE', \&handleDataTable);
+
   Foswiki::Func::registerRESTHandler(
     'connector', \&restConnector,
     authenticate => 0,
@@ -56,12 +60,63 @@ sub initPlugin {
   return 1;
 }
 
-#use Foswiki::Plugins::JQDataTablesPlugin::DataTables;
-sub handleDataTable {
-  my $plugin = Foswiki::Plugins::JQueryPlugin::createPlugin('datatables');
+sub finishPlugin {
+  undef %Connectors;
+}
 
-  return $plugin->handleDataTable(@_) if $plugin;
-  return "<span class='foswikiAlert'>ERROR: loading plugin datatables</span>";
+sub describeColumn {
+  my ($id, $column, $descr) = @_;
+
+
+  my $conn = Foswiki::Plugins::JQDataTablesPlugin::getConnector($id);
+  return 0 unless defined $conn;
+
+  $conn->{columnDescription}{$column} = $descr;
+
+  return 1;
+}
+
+sub getConnector {
+  my ($id, $session) = @_;
+
+  my $connector = $Connectors{$id};
+
+  unless (defined $connector) {
+
+    my $connectorClass = $Foswiki::cfg{JQDataTablesPlugin}{Connector}{$id}
+      || $Foswiki::cfg{JQDataTablesPlugin}{ExternalConnectors}{$id};
+
+    return unless $connectorClass;
+
+    my $path = $connectorClass.'.pm';
+    $path =~ s/::/\//g;
+    eval {require $path};
+    if ($@) {
+      print STDERR "ERROR loading connector $connectorClass: $@\n";
+      return;
+    }
+
+    $session //= $Foswiki::Plugins::SESSION;
+    $connector = $Connectors{$id} = $connectorClass->new($session);
+  }
+
+  return $connector;
+}
+
+sub getDataTables {
+  return Foswiki::Plugins::JQueryPlugin::createPlugin('datatables');
+}
+
+sub handleDataTable {
+  getDataTables->handleDataTable(@_);
+}
+
+sub handleDataTableSection {
+  getDataTables->handleDataTableSection(@_);
+}
+
+sub handleEndDataTableSection {
+  getDataTables->handleEndDataTableSection(@_);
 }
 
 sub restConnector {
@@ -73,24 +128,13 @@ sub restConnector {
        $request->param('connector')
     || $Foswiki::cfg{JQDataTablesPlugin}{DefaultConnector}
     || 'search';
-  my $connectorClass = $Foswiki::cfg{JQDataTablesPlugin}{Connector}{$connectorID}
-    || $Foswiki::cfg{JQDataTablesPlugin}{ExternalConnectors}{$connectorID};
 
-  unless ($connectorClass) {
-    printRESTResult($response, 500, "ERROR: unknown connector");
-    return '';
+  my $connector = getConnector($connectorID, $session);
+
+  unless ($connector) {
+    printRESTResult($response, 500, "ERROR: unknown connector '$connectorID'");
+    return;
   }
-
-  my $path = $connectorClass.'.pm';
-  $path =~ s/::/\//g;
-  eval {require $path};
-  if ($@) {
-    printRESTResult($response, 500, "ERROR: loading connector");
-    print STDERR "ERROR loading connector $connectorClass: $@\n";
-    return '';
-  }
-
-  my $connector = $connectorClass->new($session);
 
   my $action = $request->param('oper') || 'search';
   try {

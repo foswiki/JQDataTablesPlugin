@@ -1,8 +1,8 @@
 /*
  * Adds sorting for currencies
  */
-(function($) {
 "use strict";
+(function($) {
 
   var re = new RegExp(/[^\$£€c\d\.\-\', ]/);
 

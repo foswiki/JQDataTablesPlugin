@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2020 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,7 +21,6 @@ use warnings;
 use Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector ();
 use Foswiki::Plugins::DBCachePlugin ();
 use Foswiki::OopsException ();
-use Foswiki::Form ();
 use Foswiki::Time ();
 use Foswiki::Func ();
 use Foswiki::Sandbox ();
@@ -104,16 +103,7 @@ sub new {
       sort => 'lc(createauthor)',
     },
 
-    'qmstate' => 'qmstate.title',
-    'qmstate_id' => 'qmstate.id',
-    'qmstate_pendingApprover' => 'qmstate.pendingApprover',
-    'qmstate_pendingReviewers' => 'qmstate.pendingReviewers',
-    'qmstate_possibleReviewers' => 'qmstate.possibleReviewers',
-    'qmstate_reviewers' => 'qmstate.reviewers',
-    'qmstate_comments' => 'qmreview[comment]',
-
-    'workflow' => 'workflow.name',
-    'workflowstate' => 'workflow.name',
+    'language' => 'preferences.CONTENT_LANGUAGE',
 
     'allowchange' => 'preferences.ALLOWTOPICCHANGE',
     'allowview' => 'preferences.ALLOWTOPICVIEW',
@@ -127,12 +117,6 @@ sub new {
     'denycomment' => 'preferences.DENYTOPICCOMMENT',
     'denycreate' => 'preferences.DENYTOPICCREATE',
 
-    'comments' => {
-      type => "number",
-      data => 'length(comments)',
-      search => 'length(comments)',
-      sort => 'length(comments)',
-    },
   };
 
   return $this;
@@ -140,7 +124,6 @@ sub new {
 
 =begin TML
 
-B
 ---++ ClassMethod getColumnDescription( $columnName, $formDef ) -> \%desc
 
 also consider the form definition
@@ -171,7 +154,7 @@ sub getColumnDescription {
       type => $fieldDef ? "formfield" : "default",
       data => $columnName,
       search => $fieldDef ? "lc(displayValue('$columnName'))" : "lc($columnName)",
-      sort => $fieldDef ? "lc($columnName)" : "lc($columnName)"
+      sort => "lc($columnName)"
     };
   }
 
@@ -193,6 +176,7 @@ sub getColumnDescription {
     elsif ($fieldDef->{type} =~ /^date/) {
       $desc->{type} = "date";
       $desc->{search} = "lc(n2d($columnName))";
+      $desc->{sort} = $columnName;
     }
   }
 
@@ -219,7 +203,6 @@ sub buildQuery {
 
   if ($form) {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $form);
-    push @query, "form='$formTopic'" unless defined $context;
 
     $formDef = $this->getForm($formWeb, $formTopic);
     writeDebug("formDef found for $form") if $formDef;
@@ -392,7 +375,7 @@ sub search {
 
       $core->currentWeb("");
     }
-  } catch Error::Simple with {
+  } catch Error with {
     $error = shift->stringify();
     print STDERR "DBCacheConnector: ERROR - $error\n";
   };

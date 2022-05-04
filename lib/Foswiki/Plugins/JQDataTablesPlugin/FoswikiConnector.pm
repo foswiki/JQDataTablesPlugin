@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2020 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@ use Foswiki::Plugins::JQDataTablesPlugin::Connector ();
 use Error qw(:try);
 use Foswiki::AccessControlException ();
 use Foswiki::Meta ();
+use Foswiki::Form ();
 
 our @ISA = qw( Foswiki::Plugins::JQDataTablesPlugin::Connector );
 
@@ -222,14 +223,20 @@ sub convertResult {
         "display" => "<span class='rowNumber'>$params{index}</span>",
         "raw" => $params{index},
       };
-    } elsif ($fieldName eq 'score' || $desc->{type} eq 'score' ) {
+    } elsif ($fieldName eq 'score' || $desc->{type} eq 'score') {
       my $score = $this->getValueOfResult($params{result}, $desc->{data}) || 0;
       $cell = {
         "display" => sprintf('%.02f', $score),
         "raw" => $score,
       };
+    } elsif ($desc->{type} eq 'percent') {
+      my $value = $this->getValueOfResult($params{result}, $desc->{data}) || 0;
+      $cell = {
+        "display" => sprintf('%.02f%%', $value),
+        "raw" => $value,
+      };
     } elsif (!$isEscaped && (
-        $fieldName =~ /^(Date|Changed|Modified|Created|date|createdate|publishdate)$/ 
+        $fieldName =~ /^(Date|Changed|Modified|Created|date|createdate)$/ 
         || ($fieldDef && $fieldDef->{type} =~ /^date/) 
         || $desc->{type} eq 'date'
       )) {
@@ -239,7 +246,7 @@ sub convertResult {
       if ($fieldValue) {
         $epoch = ($fieldValue =~ /^\-?\d+$/) ? $fieldValue : Foswiki::Time::parseTime($fieldValue);
         if ($fieldDef && $fieldDef->can("getDisplayValue") && $fieldDef->{type} ne 'date') {    # standard default date formfield type can't parse&format dates
-          $time = $fieldDef->getDisplayValue($fieldValue, $web);
+          $time = $fieldDef->getDisplayValue($fieldValue, $web, $topic);
         } else {
           my $format;
           if ($fieldName =~ /^(Changed|Modified|Created|date|createdate)$/) { # SMELL: hardcode datetime vs date format
@@ -262,7 +269,7 @@ sub convertResult {
         "raw" => $topic,
       };
     } elsif (!$isEscaped && (
-        $desc->{data} =~ /^(author|createauthor|publishauthor|qmstate\.(?:pendingReviewers|reviewers))$/ 
+        $desc->{data} =~ /^(author|createauthor)$/ 
         || ($fieldDef && $fieldDef->{type} eq 'user') 
         || $desc->{type} eq 'user'
       )) {
@@ -287,7 +294,7 @@ sub convertResult {
       my @html = ();
       foreach my $item (split(/\s*,\s*/, $fieldValue)) {
         my ($thisWeb, $thisTopic) = Foswiki::Func::normalizeWebTopicName($web, $item);
-        my $html = $fieldDef->getDisplayValue($thisTopic, $thisWeb);
+        my $html = $fieldDef->getDisplayValue($thisTopic, $thisWeb, $thisTopic);
         $html = Foswiki::Func::expandCommonVariables($html, $thisTopic, $thisWeb) if $html =~ /%/;
         $html = '<noautolink> ' . $html . ' </noautolink>';    # SMELL: if $params{noautolink}
         $html = Foswiki::Func::renderText($html, $thisWeb, $thisTopic);
@@ -345,12 +352,13 @@ sub convertResult {
         $fieldDef->{name} .= int(rand(10000)) + 1;
 
         if ($fieldDef->can("getDisplayValue")) {
-          $html = $fieldDef->getDisplayValue($fieldValue);
+          $html = $fieldDef->getDisplayValue($fieldValue, $web, $topic);
         } else {
           $html = $fieldDef->renderForDisplay('$value(display)', $fieldValue, undef, $web, $topic);
         }
         
-        $html = Foswiki::Func::expandCommonVariables($fieldValue, $topic, $web) if $fieldValue =~ /%/;
+        $html = Foswiki::Func::decodeFormatTokens($html);
+        $html = Foswiki::Func::expandCommonVariables($html, $topic, $web) if $html =~ /%/;
         $html = '<noautolink> ' . $html . ' </noautolink>';    # SMELL: if $params{noautolink}
         $html = Foswiki::Func::renderText($html, $web, $topic);
         $html =~ s/<\/?noautolink>//g;

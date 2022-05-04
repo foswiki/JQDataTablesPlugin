@@ -92,6 +92,7 @@ pub/System/JQDataTablesPlugin/FixedHeader/js/dataTables.fixedHeader.min.js 0644
 pub/System/JQDataTablesPlugin/FixedHeader/js/fixedHeader.dataTables.js 0644
 pub/System/JQDataTablesPlugin/FixedHeader/js/fixedHeader.jqueryui.js 0644
 pub/System/JQDataTablesPlugin/FixedHeader/js/fixedHeader.jqueryui.min.js 0644
+pub/System/JQDataTablesPlugin/formatted-number.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/i18n/de.js 0644
 pub/System/JQDataTablesPlugin/i18n/en.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.addons.js 0644

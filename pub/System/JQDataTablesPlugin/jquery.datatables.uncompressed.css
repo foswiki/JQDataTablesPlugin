@@ -64,6 +64,20 @@ table.dataTable th .ui-icon {
   font-size:95%;
   border:0;
 }
+.dataTables_wrapper .fg-toolbar {
+  clear:both;
+}
+.dataTables_wrapper div.dt-buttons {
+  float:right;
+}
+.dataTables_searchMulti .dataTables_wrapper .fg-toolbar {
+  clear:none;
+}
+.dataTables_searchMulti div.dt-buttons {
+  float:left;
+  margin-top:2px;
+}
+
 .dataTables_wrapper table th {
   background-image:inherit;
 }
@@ -113,7 +127,7 @@ table.dataTable th .ui-icon {
 
 .dataTables_paginate .ui-button.ui-state-default.ui-state-disabled,
 .dataTables_paginate .ui-button.ui-state-disabled {
-  background:transparent !important;
+  background:transparent;
   color:inherit;
   opacity: .35;
 }
@@ -242,16 +256,14 @@ table.dataTable td {
 
 table.dataTable tbody > tr.selected,
 table.dataTable tbody > tr.selected > td,
-table.dataTable tbody > tr.selected > td > a,
 table.dataTable tbody > tr > .selected {
-  color:#599E00 !important;
-  background: #efffd8 !important;
+  color:#599E00;
+  background: #efffd8;
 }
 
 /* row group */
 table.dataTable tr.dtrg-group td {
   background-color: #f4f4f4;
-  background-color: #eee !important;
   font-weight: bold;
 }
 table.dataTable tr.dtrg-group td,
@@ -263,10 +275,6 @@ table.dataTable tr.dtrg-group td a {
 table.dataTable tr.dtrg-group.dtrg-level-1 td,
 table.dataTable tr.dtrg-group.dtrg-level-2 td {
   padding-left: 2em;
-}
-
-.dataTables_wrapper div.dt-buttons {
-  float:right;
 }
 
 @media screen and (max-width: 767px) {

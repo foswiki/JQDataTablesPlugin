@@ -5,6 +5,7 @@ ADDONS_SOURCE=\
   date-foswiki.uncompressed.js \
   datetime-moment.uncompressed.js \
   currency.uncompressed.js \
+  formatted-number.uncompressed.js \
   metrics.uncompressed.js \
   jquery.datatables.init.uncompressed.js
 

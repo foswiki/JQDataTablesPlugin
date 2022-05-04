@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# JQDataTablesPlugin is Copyright (C) 2013-2020 Michael Daum http://michaeldaumconsulting.com
+# JQDataTablesPlugin is Copyright (C) 2013-2022 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -50,18 +50,29 @@ SUMMARY
 
 }
 
-sub _push {
-  my ($this, $array, $key, $val) = @_;
+sub formatHtml5Data {
+  my ($this, $data) = @_;
 
-  if (ref($val)) {
-    $val = $this->_json->encode($val);
-  } else {
-    $val = Foswiki::entityEncode($val);
+  my @html5Data = ();
+
+  foreach my $key (sort keys %$data) {
+    next if $key =~ /^_/;
+
+    my $val = $data->{$key};
+    next unless defined $val;
+
+    if (ref($val)) {
+      $val = $this->json->encode($val);
+    } else {
+      $val = _entityEncode($val);
+    }
+    push @html5Data, "data-$key='$val'";
   }
-  push @$array, "data-$key='$val'";
+
+  return join(" ", @html5Data);
 }
 
-sub _json {
+sub json {
   my $this = shift;
 
   unless (defined $this->{_json}) {
@@ -71,19 +82,90 @@ sub _json {
   return $this->{_json};
 }
 
+sub handleEndDataTableSection {
+  my $this = shift;
+
+  return _inlineError("not inside a datatables section") unless $this->{_insideDataTableSection} > 0;
+
+  $this->{_insideDataTableSection}--;
+  return "</div>"
+}
+
+sub handleDataTableSection {
+  my ($this, $session, $params, $topic, $web) = @_;
+
+  $this->{_insideDataTableSection}++;
+  $this->{session} = $session;
+
+  my $data;
+  my $error;
+
+  try {
+    $data = $this->parseParams($params, $web, $topic);
+  } otherwise {
+    $error = shift;
+    $error =~ s/ at .*$//;
+  };
+  
+  return _inlineError($error) if defined $error;
+
+  delete $data->{columns};
+  delete $data->{ajax};
+  delete $data->{"server-side"};
+
+
+  my $html5Data = $this->formatHtml5Data($data) // "";
+  #print STDERR "html5Data=$html5Data\n";
+
+  return "<literal><div class='$data->{_class}' $html5Data></literal>";
+}
+
 sub handleDataTable {
   my ($this, $session, $params, $topic, $web) = @_;
 
-  my $html5Data = [];
+  $this->{session} = $session;
 
-  my $theClass = $params->{class} || '';
-  my $theWidth = $params->{width};
-  $theWidth = defined($theWidth) ? "width='$theWidth'" : "";
+  my $data;
+  my $error;
 
-  my $theWebs = $params->{web} || $params->{webs} || $web;
+  try {
+    $data = $this->parseParams($params, $web, $topic);
+  } otherwise {
+    $error = shift;
+    $error =~ s/ at .*$//;
+  };
+  return _inlineError($error) if defined $error;
+
+  my $width = delete $data->{_width};
+  $width = defined($width) ? "width='$width'" : "";
+
+  my $html5Data = $this->formatHtml5Data($data);
+
+  my $result = <<"HERE";
+<literal>
+<literal><div class='$data->{_class}' $html5Data></literal>
+<table class='foswikiTable' $width>
+  <thead>$data->{_thead}</thead>
+  <tbody>
+  </tbody>
+</table>$data->{_selectInput}
+</div>
+</literal>
+HERE
+
+  return $result;
+}
+
+sub parseParams {
+  my ($this, $params, $web, $topic) = @_;
+
+  my %data = ();
+
+  $data{_class} = "jqDataTablesContainer";
+  $data{_class} .= " $params->{class}" if defined $params->{class};
+  $data{_width} = $params->{width};
+
   my $theTopic = $params->{topic} || $topic;
-  my $theForm = $params->{form} || '';
-
   my ($thisWeb, $thisTopic) = Foswiki::Func::normalizeWebTopicName($web, $theTopic);
 
   my $thePaging =
@@ -97,60 +179,58 @@ sub handleDataTable {
 
   if ($theScrolling eq 'true') {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesscroller");
-    $this->_push($html5Data, "scroller", $theScrolling);
-    $this->_push($html5Data, "defer-render", 'true');
-    $this->_push($html5Data, "paging", 'true');
+    $data{"scroller"} = $theScrolling;
+    $data{"defer-render"} = 'true';
+    $data{"paging"} = 'true';
   } else {
-    $this->_push($html5Data, "paging", $thePaging);
+    $data{"paging"} = $thePaging;
   }
 
   my $theSearching = Foswiki::Func::isTrue($params->{searching}, 0) ? 'true' : 'false';
   my $theSearchMode = $params->{searchmode} || 'global';
-  $this->_push($html5Data, "searching", $theSearching);
-  $this->_push($html5Data, "search-mode", $theSearchMode);
+  $data{"searching"} = $theSearching;
+  $data{"search-mode"} = $theSearchMode;
 
-  my $theReverse = $params->{reverse} || 'off';
 
   my $theSaveState = Foswiki::Func::isTrue($params->{savestate}, 0) ? 'true' : 'false';
   if ($theSaveState eq 'true') {
-    $this->_push($html5Data, "state-save", $theSaveState);
-    $this->_push($html5Data, "state-duration", -1);    # use session store
+    $data{"state-save"} = $theSaveState;
+    $data{"state-duration"} =  -1;    # use session store
   }
 
   my $theInfo = Foswiki::Func::isTrue($params->{info}, 0) ? 'true' : 'false';
-  $this->_push($html5Data, "info", $theInfo);
+  $data{"info"} = $theInfo;
 
   my $theScrollX = Foswiki::Func::isTrue($params->{scrollx}, 0) ? 'true' : 'false';
-  $this->_push($html5Data, "scroll-x", $theScrollX);
+  $data{"scroll-x"} = $theScrollX;
 
   my $theScrollY = $params->{scrolly} || ($theScrolling eq 'true' ? 200 : "");
-  $this->_push($html5Data, "scroll-y", $theScrollY) if $theScrollY;
+  $data{"scroll-y"} = $theScrollY if $theScrollY;
 
   my $theScrollCollapse = Foswiki::Func::isTrue($params->{scrollcollapse}, 0) ? 'true' : 'false';
-  $this->_push($html5Data, "scroll-collapse", $theScrollCollapse);
+  $data{"scroll-collapse"} = $theScrollCollapse;
 
   my $theAutoWidth = Foswiki::Func::isTrue($params->{autowidth}, 0) ? 'true' : 'false';
-  $this->_push($html5Data, "auto-width", $theAutoWidth);
+  $data{"auto-width"} = $theAutoWidth;
 
   my $theSearchDelay = $params->{searchdelay} || "1000";
-  $this->_push($html5Data, "search-delay", $theSearchDelay);
+  $data{"search-delay"} = $theSearchDelay;
 
   my $theSort = $params->{sort} || '';
 
   my $theLengthMenu = $params->{lengthmenu} || '';
   if ($theLengthMenu) {
-    $this->_push($html5Data, "length-change", "true");
-    $this->_push($html5Data, "length-menu", [map { int($_) } split(/\s*,\s*/, $theLengthMenu)]);
+    $data{"length-change"} = "true";
+    $data{"length-menu"} = [map { int($_) } split(/\s*,\s*/, $theLengthMenu)];
   }
 
   my $thePageLength = $params->{rows} || $params->{pagelength};
-  $this->_push($html5Data, "page-length", $thePageLength) if $thePageLength;
+  $data{"page-length"} = $thePageLength if $thePageLength;
 
   my $theSelecting = Foswiki::Func::isTrue($params->{selecting}, 0);
   my $theSelectMode = $params->{selectmode} || "multi";
   my $theSelectProperty = $params->{selectproperty} || "topic";
   my $theSelectName = $params->{selectname} || $theSelectProperty;
-  my $selectInput = "";
   if ($theSelecting) {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesselect");
 
@@ -164,23 +244,24 @@ sub handleDataTable {
       $selectOpts->{selection} = [split(/\s*,\s*/, $theSelection)];
     }
 
-    $this->_push($html5Data, "select", $selectOpts);
-
-    $selectInput = "<input type='hidden' name='$theSelectName' class='selectInput' />";
+    $data{"select"} = $selectOpts;
+    $data{"_selectInput"} = "<input type='hidden' name='$theSelectName' class='selectInput' />";
+  } else {
+    $data{"_selectInput"} = "";
   }
 
   my $theResponsive = Foswiki::Func::isTrue($params->{responsive}, 0);
   if ($theResponsive) {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesresponsive");
 
-    $this->_push($html5Data, "responsive", "true");
+    $data{"responsive"} = "true";
   }
 
   my $theFixedHeader = Foswiki::Func::isTrue($params->{fixedheader}, 0);
   if ($theFixedHeader) {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesfixedheader");
 
-    $this->_push($html5Data, "fixed-header", "true");
+    $data{"fixed-header"} = "true";
   }
 
   my $theButtons = $params->{buttons} || '';
@@ -188,7 +269,23 @@ sub handleDataTable {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesbuttons");
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesjszip") if $theButtons =~ /\b(excel|csv)\b/;
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablespdfmake") if $theButtons =~ /\bpdf\b/;
-    $this->_push($html5Data, "buttons", [split(/\s*,\s*/, $theButtons)]);
+    my @buttons = ();
+    foreach my $button (split(/\s*,\s*/, $theButtons)) {
+      my $text;
+      $text = "%MAKETEXT{Copy to clipboard}%" if $button eq "copy";
+      $text = "%MAKETEXT{Save to CSV}%" if $button eq "csv";
+      $text = "%MAKETEXT{Save to Excel}%" if $button eq "excel";
+      $text = "%MAKETEXT{Save to PDF}%" if $button eq "pdf";
+      $text //= $button;
+      push @buttons, {
+        extend => $button."Html5",
+        text => $text,
+        exportOptions => {
+          columns => ":visible",
+        },
+      };
+    }
+    $data{"buttons"} = \@buttons;
   }
 
   my %hiddenColumns = map { $_ => 1 } split(/\s*,\s*/, $params->{hidecolumns} || '');
@@ -197,45 +294,35 @@ sub handleDataTable {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesrowgroup");
     my @rowGroup = split(/\s*,\s*/, $theRowGroup);
 
-    $this->_push(
-      $html5Data,
-      "row-group",
-      {
-        "dataSrc" => \@rowGroup
-      }
-    );
+    $data{"row-group"} = {
+      "dataSrc" => \@rowGroup
+    };
   }
 
   my $theRowCss = $params->{rowcss};
   if (defined $theRowCss) {
-    $this->_push($html5Data, "row-css", $theRowCss);
+    $data{"row-css"} = $theRowCss;
   }
 
   my $theRowClass = $params->{rowclass};
   if (defined $theRowClass) {
-    $this->_push($html5Data, "row-class", $theRowClass);
+    $data{"row-class"} = $theRowClass;
   }
 
   my $theAutoColor = $params->{autocolor};
   if (defined $theAutoColor) {
-    $this->_push($html5Data, "auto-color", $theAutoColor);
+    $data{"auto-color"} = $theAutoColor;
   }
 
   my $formDef;
   my $formParam = '';
 
+  my $theForm = $params->{form} || '';
   if ($theForm) {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName($thisWeb, $theForm);
     $formWeb =~ s/\//./g;
 
-    my $error;
-    try {
-      $formDef = new Foswiki::Form($session, $formWeb, $formTopic);
-    }
-    catch Foswiki::OopsException with {
-      $error = "<div class='foswikiAlert'>ERROR: form $formWeb.$formTopic not found.</div>";
-    };
-    return $error if $error;
+    $formDef = Foswiki::Form->new($this->{session}, $formWeb, $formTopic);
     $formParam = $formWeb.'.'.$formTopic;
   }
 
@@ -293,77 +380,92 @@ sub handleDataTable {
   }
 
   my $theOrdering = Foswiki::Func::isTrue($params->{ordering}, 1);
-
+  my $theReverse = $params->{reverse} || 'off';
   my %order = (); 
-  foreach my $fieldDef (@columnFields) {
-    my $fieldName;
-    if (ref($fieldDef)) {
-      $fieldName = $fieldDef->{name};
-    } else {
-      $fieldName = $fieldDef;
-      $fieldDef = undef;
-    }
-    push @thead, "<th>$fieldName</th>";
-    my $col = {
-      "data" => $fieldName,
-      "name" => $fieldName,
-      "visible" => $hiddenColumns{$fieldName} ? JSON::false : JSON::true,
-      "orderable" => $theOrdering ? JSON::true : JSON::false,
-    };
-
-    if ($fieldName =~ /^(index|thumbnail|icon)/) {
-      $col->{render} = {
-        "_" => "raw",
-        "display" => "display",
-      };
-      $col->{title} = "";
-      $col->{searchable} = JSON::false;
-      $col->{orderable} = JSON::false;
-    } elsif ($fieldName =~ /^(Date|Changed|Modified|Created|info\.date|createdate)$/ || ($fieldDef->{type} && $fieldDef->{type} =~ /^date/)) {
-      $col->{render} = {
-        "_" => "raw",
-        "display" => "display",
-        "sort" => "epoch",
-      };
-    } else {
-      $col->{render} = {
-        "_" => "raw",
-        "display" => "display",
-      };
-    }
-
-    if (!defined($col->{searchable})
-      || $col->{searchable} eq JSON::true)
-    {
-      push @multiFilter, "<th><input type='text' class='colSearch foswikiInputField' data-column='$fieldName' /></th>";
-    } else {
-      push @multiFilter, "<th></th>";
-    }
-
-    # construct column title
-    my $title = '';
-    $title = $fieldName if $fieldName =~ s/^[#\/]//;
-    my $key = $fieldName . '_title';
-    $key =~ s/[_\(\)\[\]\.,\s]+/_/g;
-    $title = $params->{$key} if defined $params->{$key};
-    $col->{title} = $title if $title;
-
-    my $width = $params->{$fieldName . '_width'};
-    $col->{width} = $width if $width;
-
-    push @columns, $col;
-
-    if ($theSort =~ /\b$fieldName\b/) {
-      my $reverse = 'asc';
-      if ($theReverse =~ /\b$fieldName\b/) {
-        $reverse = 'desc';
+  if (@columnFields) {
+    foreach my $fieldDef (@columnFields) {
+      my $fieldName;
+      if (ref($fieldDef)) {
+        $fieldName = $fieldDef->{name};
       } else {
-        $reverse = ($theReverse =~ /^\s*(on|true|1|no)\s*$/) ? 'desc' : 'asc';
+        $fieldName = $fieldDef;
+        $fieldDef = undef;
+      }
+      push @thead, "<th>$fieldName</th>";
+      my $col = {
+        "data" => $fieldName,
+        "name" => $fieldName,
+        "visible" => $hiddenColumns{$fieldName} ? JSON::false : JSON::true,
+        "orderable" => $theOrdering ? JSON::true : JSON::false,
+      };
+
+      if ($fieldName =~ /^(index|thumbnail|icon)/) {
+        $col->{render} = {
+          "_" => "raw",
+          "display" => "display",
+        };
+        $col->{title} = "";
+        $col->{searchable} = JSON::false;
+        $col->{orderable} = JSON::false;
+      } elsif ($fieldName =~ /^(Date|Changed|Modified|Created|info\.date|createdate)$/ || ($fieldDef->{type} && $fieldDef->{type} =~ /^date/)) {
+        $col->{render} = {
+          "_" => "raw",
+          "display" => "display",
+          "sort" => "epoch",
+        };
+      } else {
+        $col->{render} = {
+          "_" => "raw",
+          "display" => "display",
+        };
       }
 
-      $order{$fieldName} = [$index, $reverse];
+      if (!defined($col->{searchable})
+        || $col->{searchable} eq JSON::true)
+      {
+        push @multiFilter, "<th><input type='text' class='colSearch foswikiInputField' data-column='$fieldName' /></th>";
+      } else {
+        push @multiFilter, "<th></th>";
+      }
+
+      # construct column title
+      my $title = '';
+      $title = $fieldName if $fieldName =~ s/^[#\/]//;
+      my $key = $fieldName . '_title';
+      $key =~ s/[_\(\)\[\]\.,\s]+/_/g;
+      $title = $params->{$key} if defined $params->{$key};
+      $col->{title} = $title if $title;
+
+      my $width = $params->{$fieldName . '_width'};
+      $col->{width} = $width if $width;
+
+      push @columns, $col;
+
+      if ($theSort =~ /\b$fieldName\b/) {
+        my $reverse = 'asc';
+        if ($theReverse =~ /\b$fieldName\b/) {
+          $reverse = 'desc';
+        } else {
+          $reverse = ($theReverse =~ /^\s*(on|true|1|no)\s*$/) ? 'desc' : 'asc';
+        }
+
+        $order{$fieldName} = [$index, $reverse];
+      }
+      $index++;
     }
-    $index++;
+  } else {
+    foreach my $index (split(/\s*,\s*/, $theSort)) {
+      if ($theSort =~ /\b$index\b/) {
+        my $reverse = 'asc';
+        if ($theReverse =~ /\b$index\b/) {
+          $reverse = 'desc';
+        } else {
+          $reverse = ($theReverse =~ /^\s*(on|true|1|no)\s*$/) ? 'desc' : 'asc';
+        }
+
+        $order{$index} = [$index, $reverse];
+      }
+    }
   }
   push @thead, "</tr>";
 
@@ -380,22 +482,20 @@ sub handleDataTable {
     }
   }
 
-  push @order, [0, $theReverse] unless @order;    # default;
-  $this->_push($html5Data, "order", \@order);
+  push @order, [($theSort =~ /^\d+$/) ? $theSort : 0, ($theReverse =~ /^\s*(on|true|1|no)\s*$/) ? 'desc' : 'asc'] unless @order;    # default;
 
-  my $thead = join("\n", @thead);
-  $this->_push($html5Data, "columns", \@columns);
-
-  #my $tfoot = join("\n", @tfoot);
+  $data{"order"} = \@order;
+  $data{"_thead"} = join("\n", @thead);
+  $data{"columns"} = \@columns;
 
   my $time = time();
   my $url = Foswiki::Func::getScriptUrl("JQDataTablesPlugin", "connector", "rest");
-  $this->_push($html5Data, "server-side", "true");
   my $connector =
        $params->{connector}
     || $Foswiki::cfg{JQDataTablesPlugin}{DefaultConnector}
     || 'search';
 
+  my $theWebs = $params->{web} || $params->{webs} || $web;
   my $ajax = {
     url => $url,
     type => "post",
@@ -428,22 +528,24 @@ sub handleDataTable {
     $ajax->{data}{query} = Foswiki::entityEncode($theQuery);
   }
 
-  $this->_push($html5Data, "ajax", $ajax);
+  $data{"server-side"} = "true";
+  $data{"ajax"} =$ajax;
 
-  $html5Data = join(" ", @$html5Data);
-  my $result = <<"HERE";
-<literal>
-<div class='jqDataTablesContainer' $html5Data>
-<table class='foswikiTable $theClass' $theWidth>
-  <thead>$thead</thead>
-  <tbody>
-  </tbody>
-</table>$selectInput
-</div>
-</literal>
-HERE
-
-  return $result;
+  return \%data;
 }
+
+sub _entityEncode {
+  my $text = shift;
+
+  $text =~ s/([[\x01-\x09\x0b\x0c\x0e-\x1f"%&\$'*<=>@\]_])/'&#'.ord($1).';'/ge;
+  return $text;
+}
+
+sub _inlineError {
+  my $msg = shift;
+
+  return "<span class='foswikiAlert'>Error: $msg</span>";
+}
+
 
 1;

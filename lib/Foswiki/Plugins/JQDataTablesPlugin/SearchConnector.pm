@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2016-2020 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2016-2022 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,7 +20,6 @@ use warnings;
 
 use Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector ();
 use Foswiki::OopsException ();
-use Foswiki::Form ();
 use Foswiki::Time ();
 use Foswiki::Func ();
 use Foswiki::Sandbox ();
@@ -181,8 +180,6 @@ sub buildQuery {
 
   if ($form) {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $form);
-    push @query, "form.name=~'.*\\.$formTopic\$'";
-
     $formDef = $this->getForm($formWeb, $formTopic);
 
     #writeDebug("formDef found for $form") if $formDef;

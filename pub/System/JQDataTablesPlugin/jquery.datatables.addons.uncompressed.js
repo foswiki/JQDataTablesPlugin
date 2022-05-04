@@ -8,8 +8,8 @@
  *   </ul>
  */
 
-(function($) {
 "use strict";
+(function($) {
 
   var mon = new RegExp(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/i);
 
@@ -139,8 +139,8 @@ $.fn.dataTable.moment = function ( format, locale ) {
 /*
  * Adds sorting for currencies
  */
-(function($) {
 "use strict";
+(function($) {
 
   var re = new RegExp(/[^\$£€c\d\.\-\', ]/);
 
@@ -176,6 +176,47 @@ $.fn.dataTable.moment = function ( format, locale ) {
 
 }(jQuery));
 /*
+ * Adds formattede numbers: fetch the first float present within an html tag
+ */
+"use strict";
+(function($) {
+
+  var reNum = new RegExp(/^.*?<\w+.*?>\s*([+-]?\d+(\.\d+)?)?\s*<\/\w+>.*$/);
+
+  // add auto-detection
+  $.fn.dataTableExt.aTypes.unshift(
+    function(data) {
+      if (typeof data !== 'string' || !reNum.test(data)) {
+        return null;
+      }
+      return 'formatted-number';
+    }
+  );
+
+  // define sorting
+  $.extend($.fn.dataTableExt.oSort, {
+    "formatted-number-pre": function(str) {
+      var a;
+
+      a = str.replace(reNum, '$1');
+      if (a === "") {
+        return 0;
+      }
+      return parseFloat(a, 10);
+    },
+
+    "formatted-number-asc": function(a, b) {
+      return a - b;
+    },
+
+    "formatted-number-desc": function(a, b) {
+      return b - a;
+    }
+  });
+
+}(jQuery));
+
+/*
  * Adds sorting for metrics
  * Matches numbers with an optional metric prefix
  *   <ul>
@@ -185,8 +226,8 @@ $.fn.dataTable.moment = function ( format, locale ) {
  *      <li>4.9GB</li>
  *   </ul>
  */
-(function($) {
 "use strict";
+(function($) {
 
   var 
     numberReg = new RegExp(/[+-]?\d+(\.\d+)?/),
@@ -293,8 +334,8 @@ jQuery(function($) {
 
     "language": {
       "search": "<b class='i18n' data-i18n-message='filter'>Filter:</b>",
-      "info": "_START_ - _END_ of <b>_TOTAL_</b>",
-      "infoEmpty": "<span class='foswikiAlert i18n' data-i18n-message='infoEmpty'>nothing found</span>",
+      "info": "<span class='i18n' data-i18n-start='_START_' data-i18n-end='_END_' data-i18n-total='_TOTAL_'>%start% - %end% of %total%</span>",
+      "infoEmpty": "",
       "infoFiltered": "",
       "lengthMenu": "<b class='i18n' data-i18n-message='lengthMenu'>Results per page:</b> _MENU_",
       "emptyTable": "<span class='i18n' data-i18n-message='emptyTable'>No data available in table</span>",
@@ -440,6 +481,8 @@ jQuery(function($) {
 
 
     if (opts.searchMode === 'multi') {
+      $container.addClass("dataTables_searchMulti");
+
       // remove global filter filed in multi search ... is there an easier way to do this???
       opts.dom =
         'B<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"rl>'+
@@ -516,12 +559,6 @@ jQuery(function($) {
         };
       }
 
-      // add info callback
-      opts.infoCallback = function(settings, start, end, max, total, pre) {
-        var num = Object.keys(rowSelection).length;
-        return start +" - " + end + " of " + total + (num?"<span class='select-info'>, " + num + " selected</span>":"");
-      };
-
       // row groups
       if (typeof(opts.rowGroup) !== 'undefined') {
         $.each(opts.rowGroup.dataSrc, function(i, val) {
@@ -587,7 +624,7 @@ jQuery(function($) {
 
       // instantiate
       dt = $table.DataTable(opts);
-      //window.dt = dt; // playground
+      $table.data("dt", dt);
 
       // maintain selection state
       if (typeof(opts.select) !== 'undefined') {

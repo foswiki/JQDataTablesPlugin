@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2020 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,7 +22,6 @@ use Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector ();
 use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Plugins::SolrPlugin ();
 use Foswiki::OopsException ();
-use Foswiki::Form ();
 use Foswiki::Time ();
 use Foswiki::Func ();
 use Foswiki::Sandbox ();
@@ -58,18 +57,6 @@ sub new {
       data => 'score',
       search => 'score',
       sort => 'score',
-    },
-    'comments' => {
-      type => 'number',
-      data => 'field_Comments_d',
-      search => 'field_Comments_d',
-      sort => 'field_Comments_d',
-    },
-    'commentdate' => {
-      type => 'date',
-      data => 'field_Comments_dt',
-      search => 'field_Comments_search',
-      sort => 'field_Comments_dt',
     },
     'Topic' => {
       type => 'topic',
@@ -119,33 +106,7 @@ sub new {
       search => 'createauthor',
       sort => 'createauthor',
     },
-    'qmstate_id' => 'state',
-    'workflow' => 'state',
-    'workflowstate' => 'state',
-    'publishdate' => {
-      type => 'date',
-      data => 'field_PublishDate_dt',
-      search => 'field_PublishDate_search',
-      sort => 'field_PublishDate_dt',
-    },
-    'publishauthor' => {
-      type => 'user',
-      data => 'field_PublishAuthor_lst',
-      search => 'field_PublishAuthor_lst',
-      sort => 'field_PublishAuthor_sort',
-    },
-    'publishauthor_title' => {
-      type => 'default',
-      data => 'field_PublishAuthor_title_lst',
-      search => 'field_PublishAuthor_title_search',
-      sort => 'field_PublishAuthor_title_sort',
-    },
 
-    #'qmstate' => 'qmstate.title',
-    #'qmstate_id' => 'qmstate.id',
-    #'qmstate_pendingApprover' => 'qmstate.pendingApprover',
-    #'qmstate_reviewers' => 'qmstate.reviewers',
-    #'qmstate_comments' => 'qmreview.comment',
   };
 
   return $this;
@@ -216,6 +177,8 @@ sub getColumnDescription {
     $sortField =~ s/^(.*)_(s|lst)$/$1_sort/;
   }
 
+  #$dataField =~ s/_(lst|dt)$/_s/; # data is always _s
+
   $desc = {
     type => $fieldType,
     data => $dataField,
@@ -248,8 +211,6 @@ sub buildQuery {
   if ($form) {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $form);
     $formWeb =~ s/\//./g;
-
-    push @filterQuery, "form:*.$formTopic";
 
     $formDef = $this->getForm($formWeb, $formTopic);
     writeDebug("formDef found for $form") if $formDef;
@@ -326,8 +287,7 @@ sub buildQuery {
   $query = join(' ', @query) if @query;
   writeDebug("query=$query");
 
-  $this->{_filterQuery} = join(' ', @filterQuery);
-  writeDebug("filterQuery=$this->{_filterQuery}");
+  $this->{_filterQuery} = \@filterQuery;
 
   return $query;
 }
@@ -362,7 +322,11 @@ sub search {
   my ($this, %params) = @_;
 
   my $formDef;
-  $formDef = $this->getForm(undef, $params{form}) if $params{form};
+
+  if ($params{form}) {
+    my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $params{form});
+    $formDef = $this->getForm($formWeb, $formTopic);
+  }
 
   my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
 
@@ -384,7 +348,6 @@ sub search {
     push @fl, $desc->{data};
   }
   push @fl, "form", "web", "topic, score";
-
 
   my @qf = ();
   foreach my $f (@fl) {

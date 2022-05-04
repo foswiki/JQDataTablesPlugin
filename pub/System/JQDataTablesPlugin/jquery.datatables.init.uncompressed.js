@@ -27,8 +27,8 @@ jQuery(function($) {
 
     "language": {
       "search": "<b class='i18n' data-i18n-message='filter'>Filter:</b>",
-      "info": "_START_ - _END_ of <b>_TOTAL_</b>",
-      "infoEmpty": "<span class='foswikiAlert i18n' data-i18n-message='infoEmpty'>nothing found</span>",
+      "info": "<span class='i18n' data-i18n-start='_START_' data-i18n-end='_END_' data-i18n-total='_TOTAL_'>%start% - %end% of %total%</span>",
+      "infoEmpty": "",
       "infoFiltered": "",
       "lengthMenu": "<b class='i18n' data-i18n-message='lengthMenu'>Results per page:</b> _MENU_",
       "emptyTable": "<span class='i18n' data-i18n-message='emptyTable'>No data available in table</span>",
@@ -174,6 +174,8 @@ jQuery(function($) {
 
 
     if (opts.searchMode === 'multi') {
+      $container.addClass("dataTables_searchMulti");
+
       // remove global filter filed in multi search ... is there an easier way to do this???
       opts.dom =
         'B<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"rl>'+
@@ -250,12 +252,6 @@ jQuery(function($) {
         };
       }
 
-      // add info callback
-      opts.infoCallback = function(settings, start, end, max, total, pre) {
-        var num = Object.keys(rowSelection).length;
-        return start +" - " + end + " of " + total + (num?"<span class='select-info'>, " + num + " selected</span>":"");
-      };
-
       // row groups
       if (typeof(opts.rowGroup) !== 'undefined') {
         $.each(opts.rowGroup.dataSrc, function(i, val) {
@@ -321,7 +317,7 @@ jQuery(function($) {
 
       // instantiate
       dt = $table.DataTable(opts);
-      //window.dt = dt; // playground
+      $table.data("dt", dt);
 
       // maintain selection state
       if (typeof(opts.select) !== 'undefined') {

@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2020 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,6 @@ package Foswiki::Plugins::JQDataTablesPlugin::Connector;
 
 use strict;
 use warnings;
-use Encode ();
 
 =begin TML
 
@@ -165,11 +164,7 @@ sub restHandleSearch {
 
   my @sort = map {$_->{name}} sort {$a->{_sorted} <=> $b->{_sorted}} grep {defined $_->{_sorted}} @columns;
 
-  my $totalRecords = 0;
-  my $totalDisplayRecords = 0;
-  my $data;
-
-  ($totalRecords, $totalDisplayRecords, $data) = $this->search(
+  my ($totalRecords, $totalDisplayRecords, $data) = $this->search(
     web => $web,
     topic => $topic,
     webs => \@webs,
@@ -188,8 +183,8 @@ sub restHandleSearch {
 
   my $result = {
     draw => $echo,
-    recordsTotal => $totalRecords,
-    recordsFiltered => $totalDisplayRecords,
+    recordsTotal => $totalRecords // 0,
+    recordsFiltered => $totalDisplayRecords // 0,
     data => $data
   };
 

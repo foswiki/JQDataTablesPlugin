@@ -8,8 +8,8 @@
  *      <li>4.9GB</li>
  *   </ul>
  */
-(function($) {
 "use strict";
+(function($) {
 
   var 
     numberReg = new RegExp(/[+-]?\d+(\.\d+)?/),
