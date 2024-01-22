@@ -142,7 +142,7 @@ jQuery(function($) {
   $('.jqDataTablesContainer table').livequery(function() {
     var $table = $(this),
         $container = $table.parents(".jqDataTablesContainer:first"), 
-        opts = $.extend({}, $container.metadata(), $container.data()),
+        opts = $.extend({}, $container.data(), $container.metadata()),
 	rowCallbacks = [];
 
     // create rowCallback
@@ -230,6 +230,7 @@ jQuery(function($) {
 
           checkbox = $("<input />").attr({
             "type": "checkbox",
+            "class": "foswikiCheckbox",
             "value": val
           });
           if (rowSelection[val]) {
@@ -260,6 +261,11 @@ jQuery(function($) {
             opts.rowGroup.dataSrc[i] = num;
           }
         });
+        /*
+        opts.rowGroup.startRender = function ( rows, group ) {
+          return group +' <span class="rowCount">' + rows.count()+'</span>';
+        }
+        */
       }
 
       // row css
@@ -310,7 +316,7 @@ jQuery(function($) {
               type: "error"
             });
           } else {
-            $.pnotify_remove_all();
+            //$.pnotify_remove_all();
           }
         };
       }
@@ -348,8 +354,7 @@ jQuery(function($) {
           drawInfo();
         }
 
-        dt.on("select", selectHandler);
-        dt.on("deselect", selectHandler);
+        dt.on("select deselect", selectHandler);
       }
 
       // remove name from pagelength select

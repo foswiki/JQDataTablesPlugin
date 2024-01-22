@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2016-2022 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2016-2024 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,6 +14,14 @@
 # http://www.gnu.org/copyleft/gpl.html
 
 package Foswiki::Plugins::JQDataTablesPlugin::SearchConnector;
+
+=begin TML
+
+---+ package Foswiki::Plugins::JQDataTablesPlugin::SearchConnector
+
+implements the grid connector interface using Foswiki's standard search mechanism
+
+=cut
 
 use strict;
 use warnings;
@@ -30,18 +38,11 @@ our @ISA = qw( Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector );
 
 use constant TRACE => 0;    # toggle me
 
-sub writeDebug {
-  return unless TRACE;
-
-  #Foswiki::Func::writeDebug("SearchConnector - $_[0]");
-  print STDERR "SearchConnector - $_[0]\n";
-}
-
 =begin TML
 
----+ package Foswiki::Plugins::JQDataTablesPlugin::SearchConnector
+---++ ClassMethod new($session) -> $this
 
-implements the grid connector interface using Foswiki's standard search mechanism
+constructor
 
 =cut
 
@@ -110,7 +111,7 @@ sub new {
 
 =begin TML
 
----++ ClassMethod getColumnDescription($columName, $formDef) -> \%desc
+---++ ObjectMethod getColumnDescription($columName, $formDef) -> \%desc
 
 helper to sort on the right field
 
@@ -164,7 +165,7 @@ sub getColumnDescription {
 
 =begin TML
 
----++ ClassMethod buildQuery() -> $query
+---++ ObjectMethod buildQuery() -> $query
 
 creates a query based on the current request
 
@@ -182,10 +183,10 @@ sub buildQuery {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $form);
     $formDef = $this->getForm($formWeb, $formTopic);
 
-    #writeDebug("formDef found for $form") if $formDef;
-    #writeDebug("formDef NOT found for $form") unless $formDef;
+    #_writeDebug("formDef found for $form") if $formDef;
+    #_writeDebug("formDef NOT found for $form") unless $formDef;
   } else {
-    #writeDebug("no form in query");
+    #_writeDebug("no form in query");
   }
 
   my @columns = $this->getColumnsFromRequest($request);
@@ -274,14 +275,14 @@ sub buildQuery {
   my $query = "";
   $query = join(' AND ', @query) if @query;
 
-  writeDebug("query=$query");
+  _writeDebug("query=$query");
 
   return $query;
 }
 
 =begin TML
 
----++ ClassMethod getValueOfResult( $meta, $property, $fieldDef ) -> $value
+---++ ObjectMethod getValueOfResult( $meta, $property, $fieldDef ) -> $value
 
 get a property of a result document
 
@@ -325,7 +326,7 @@ sub getValueOfResult {
 
 =begin TML
 
----++ ClassMethod search( %params ) -> ($total, $totalFiltered, $data)
+---++ ObjectMethod search( %params ) -> ($total, $totalFiltered, $data)
 
 perform the actual search and fetch result 
 
@@ -340,7 +341,7 @@ sub search {
   my $desc = $this->getColumnDescription($params{sort}, $formDef);
   my $webs = join(", ", @{$params{webs}});
 
-  writeDebug("webs=$webs, reverse=$params{reverse}, sort=$desc->{sort}");
+  _writeDebug("webs=$webs, reverse=$params{reverse}, sort=$desc->{sort}");
   my $hits = Foswiki::Func::query(
     $params{query},
     undef,
@@ -383,6 +384,13 @@ sub search {
 
   return ($total, $totalFiltered, \@data);
 }
+sub _writeDebug {
+  return unless TRACE;
+
+  #Foswiki::Func::writeDebug("SearchConnector - $_[0]");
+  print STDERR "SearchConnector - $_[0]\n";
+}
+
 
 1;
 

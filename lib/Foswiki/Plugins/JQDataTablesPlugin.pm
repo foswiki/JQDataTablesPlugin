@@ -1,6 +1,7 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 # 
-# JQTablePlugin is copyright (C) 2012 SvenDowideit@fosiki.com, 2013-2022 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2012 SvenDowideit@fosiki.com, 
+# Copyright (C) 2013-2024 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,10 +22,11 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '7.00';
-our $RELEASE = '04 May 2022';
+our $VERSION = '7.20';
+our $RELEASE = '%$RELEASE%';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
-our %Connectors = ();
+our $LICENSECODE = '%$LICENSECODE%';
+our %knownConnectors = ();
 
 sub initPlugin {
 
@@ -61,12 +63,11 @@ sub initPlugin {
 }
 
 sub finishPlugin {
-  undef %Connectors;
+  undef %knownConnectors;
 }
 
 sub describeColumn {
   my ($id, $column, $descr) = @_;
-
 
   my $conn = Foswiki::Plugins::JQDataTablesPlugin::getConnector($id);
   return 0 unless defined $conn;
@@ -79,25 +80,50 @@ sub describeColumn {
 sub getConnector {
   my ($id, $session) = @_;
 
-  my $connector = $Connectors{$id};
+  $session //= $Foswiki::Plugins::SESSION;
 
-  unless (defined $connector) {
+  my $connector = $knownConnectors{$id};
 
-    my $connectorClass = $Foswiki::cfg{JQDataTablesPlugin}{Connector}{$id}
+  if (defined $connector) {
+
+    $connector = $knownConnectors{$id} = _createConnector($connector, $session)
+      unless ref($connector);
+
+  } else {
+
+    my $class = $Foswiki::cfg{JQDataTablesPlugin}{Connector}{$id}
       || $Foswiki::cfg{JQDataTablesPlugin}{ExternalConnectors}{$id};
 
-    return unless $connectorClass;
+    return unless $class;
 
-    my $path = $connectorClass.'.pm';
-    $path =~ s/::/\//g;
-    eval {require $path};
-    if ($@) {
-      print STDERR "ERROR loading connector $connectorClass: $@\n";
-      return;
-    }
+    $connector = $knownConnectors{$id} = _createConnector($class, $session);
+  }
 
-    $session //= $Foswiki::Plugins::SESSION;
-    $connector = $Connectors{$id} = $connectorClass->new($session);
+  return $connector;
+}
+
+sub _createConnector {
+  my ($class, $session) = @_;
+
+  my $path = $class.'.pm';
+  $path =~ s/::/\//g;
+
+  eval {require $path};
+  if ($@) {
+    #print STDERR "ERROR loading connector $class: $@\n";
+    return;
+  }
+
+  return $class->new($session);
+}
+
+sub registerConnector {
+  my ($id, $class) = @_;
+
+  my $connector = $knownConnectors{$id};
+  
+  unless (defined $connector) {
+    $connector = $knownConnectors{$id} = $class; # delay compilation
   }
 
   return $connector;
@@ -122,7 +148,7 @@ sub handleEndDataTableSection {
 sub restConnector {
   my ($session, $subject, $verb, $response) = @_;
 
-  my $request = Foswiki::Func::getCgiQuery();
+  my $request = Foswiki::Func::getRequestObject();
 
   my $connectorID =
        $request->param('connector')

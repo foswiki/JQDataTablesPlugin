@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2024 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,14 +15,23 @@
 
 package Foswiki::Plugins::JQDataTablesPlugin::Connector;
 
+=begin TML
+
+---+ package Foswiki::Plugins::JQDataTablesPlugin::Connector
+
+base class for grid connectors used to feed a datatables widget
+
+=cut
+
+
 use strict;
 use warnings;
 
 =begin TML
 
----+ package Foswiki::Plugins::JQDataTablesPlugin::Connector
+---++ ClassMethod new($session)
 
-base class for grid connectors used to feed a jqGrid widget
+constructor
 
 =cut
 
@@ -39,7 +48,7 @@ sub new {
 
 =begin TML
 
----++ ClassMethod restHandleSave($request, $response)
+---++ ObjectMethod restHandleSave($request, $response)
 
 this is called by the gridconnector REST handler based on the "oper"
 url parameter as provided by the GRID widget.
@@ -52,7 +61,7 @@ sub restHandleSave {
 
 =begin TML
 
----++ ClassMethod buildQuery($request) -> $string
+---++ ObjectMethod buildQuery($request) -> $string
 
 creates a query based on the current request
 
@@ -65,7 +74,7 @@ sub buildQuery {
 
 =begin TML
 
----++ ClassMethod convertResult( %params ) -> \%rows
+---++ ObjectMethod convertResult( %params ) -> \%rows
 
 convert a result to a rows for datatable.
 
@@ -84,7 +93,7 @@ sub convertResult {
 
 =begin TML
 
----++ ClassMethod getValueOfResult( $doc, $property, $fieldDef ) -> $value
+---++ ObjectMethod getValueOfResult( $doc, $property, $fieldDef ) -> $value
 
 get a property of a result document
 
@@ -94,10 +103,9 @@ sub getValueOfResult {
   die "not implemented";
 }
 
-
 =begin TML
 
----++ ClassMethod search( %params ) -> ($total, $totalFiltered, $data)
+---++ ObjectMethod search( %params ) -> ($total, $totalFiltered, $data)
 
 perform the actual search and fetch result 
 
@@ -109,7 +117,7 @@ sub search {
 
 =begin TML
 
----++ ClassMethod restHandleSearch($request, $response)
+---++ ObjectMethod restHandleSearch($request, $response)
 
 this is called by the connector REST handler based on the "oper"
 url parameter as provided by the Datatables widget.
@@ -164,7 +172,7 @@ sub restHandleSearch {
 
   my @sort = map {$_->{name}} sort {$a->{_sorted} <=> $b->{_sorted}} grep {defined $_->{_sorted}} @columns;
 
-  my ($totalRecords, $totalDisplayRecords, $data) = $this->search(
+  my ($totalRecords, $totalDisplayRecords, $data, $stats) = $this->search(
     web => $web,
     topic => $topic,
     webs => \@webs,
@@ -187,6 +195,7 @@ sub restHandleSearch {
     recordsFiltered => $totalDisplayRecords // 0,
     data => $data
   };
+  $result->{stats} = $stats if defined $stats;
 
   $result = JSON::to_json($result, pretty => 1);
 
@@ -195,7 +204,7 @@ sub restHandleSearch {
 
 =begin TML
 
----++ ClassMethod getColumnDescription( $columnName, $formDef ) -> \%desc
+---++ ObjectMethod getColumnDescription( $columnName ) -> \%desc
 
 describe the kind of data for a column as available in the store. this returns
 a description has 
@@ -210,7 +219,7 @@ a description has
 =cut
 
 sub getColumnDescription {
-  my ($this, $columnName, $formDef) = @_;
+  my ($this, $columnName) = @_;
 
   return unless defined $columnName;
   my $desc;
@@ -220,11 +229,13 @@ sub getColumnDescription {
     $desc = $1;
   } else {
     $columnName =~ s/^#//;
-    my $desc = $this->{columnDescription}{$columnName};
-    return unless defined $desc;
+    $desc = $this->{columnDescription}{$columnName};
+    return $desc if defined $desc;
   }
 
+
   unless (ref($desc)) {
+    $desc //= $columnName;
     $desc = {
       type => "default",
       data => $desc,
@@ -238,7 +249,7 @@ sub getColumnDescription {
 
 =begin TML
 
----++ ClassMethod getColumnsFromRequest( $request ) -> @cols
+---++ ObjectMethod getColumnsFromRequest( $request ) -> @cols
 
 read the request params and collect the column descriptions as
 transmitted by the Datatables client
@@ -290,7 +301,7 @@ sub getColumnsFromRequest {
 
 =begin TML
 
----++ ClassMethod translate($string, $web, $topic) -> $string
+---++ ObjectMethod translate($string, $web, $topic) -> $string
 
 translate string to user's current language
 
@@ -320,6 +331,32 @@ sub translate {
 
 =begin TML
 
+---++ ObjectMethod addStats($stats, $row) -> $stats
+
+counts all values of all columns in the row
+
+=cut
+
+sub addStats {
+  my ($this, $stats, $row) = @_;
+
+  # count values per row
+  foreach my $key (keys %$row) {
+    my $col = $row->{$key};
+
+    next if 
+      $key =~ /^(topic|TopicTitle)$/ ||
+      defined $col->{epoch}; # 
+
+    my $val = $col->{raw};
+    $stats->{$key}{$val}++;
+  }
+
+  return $stats;
+}
+
+=begin TML
+
 ---++ StaticMethod urlDecode( $text ) -> $text
 
 from Fowiki.pm
@@ -334,21 +371,7 @@ sub urlDecode {
 
 =begin TML
 
----++ ClassMethod isValueMapped( $fieldDef ) -> $boolean
-
-should be in FieldDefinition
-
-=cut
-
-sub isValueMapped {
-  my ($this, $fieldDef) = @_;
-
-  return $fieldDef ? $fieldDef->can("isValueMapped") ? $fieldDef->isValueMapped() : $fieldDef->{type} =~ /\+values/ : 0;
-}
-
-=begin TML
-
----++ ClassMethod isProtected( $colname ) -> $boolean
+---++ ObjectMethod isProtected( $colname ) -> $boolean
 
 returns true if the column is supposed to be be protected
 

@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2024 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,6 +14,14 @@
 # http://www.gnu.org/copyleft/gpl.html
 
 package Foswiki::Plugins::JQDataTablesPlugin::SolrConnector;
+
+=begin TML
+
+---+ package Foswiki::Plugins::JQDataTablesPlugin::SolrConnector
+
+implements the grid connector interface using a SolrPlugin based backend
+
+=cut
 
 use strict;
 use warnings;
@@ -32,16 +40,11 @@ our @ISA = qw( Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector );
 
 use constant TRACE => 0;    # toggle me
 
-sub writeDebug {
-  return unless TRACE;
-  print STDERR "SolrConnector - $_[0]\n";
-}
-
 =begin TML
 
----+ package Foswiki::Plugins::JQDataTablesPlugin::SolrConnector
+---++ ClassMethod new($session) -> $this
 
-implements the grid connector interface using a SolrPlugin based backend
+constructor
 
 =cut
 
@@ -63,6 +66,18 @@ sub new {
       data => 'topic',
       search => 'topic_search',
       sort => 'topic_sort',
+    },
+    'Web' => {
+      type => 'web',
+      data => 'container_web',
+      search => 'container_title',
+      sort => 'container_title'
+    },
+    'TopicType' => {
+      type => 'default',
+      data => 'field_TopicType_first_s',
+      search => 'field_TopicType_first_seach',
+      sort => 'field_TopicType_first_s',
     },
     'TopicTitle' => {
       type => 'default',
@@ -114,7 +129,7 @@ sub new {
 
 =begin TML
 
----++ ClassMethod getColumnDescription( $columnName, $formDef ) -> $propertyName
+---++ ObjectMethod getColumnDescription( $columnName, $formDef ) -> $propertyName
 
 maps a column name to the actual property in the store. 
 
@@ -192,7 +207,7 @@ sub getColumnDescription {
 
 =begin TML
 
----++ ClassMethod buildQuery() -> $query
+---++ ObjectMethod buildQuery() -> $query
 
 creates a query based on the current request, only returns the pure string for the q parameter
 of solr. any other filters are stored in $this->{_filterQuery} and used in search()
@@ -213,10 +228,10 @@ sub buildQuery {
     $formWeb =~ s/\//./g;
 
     $formDef = $this->getForm($formWeb, $formTopic);
-    writeDebug("formDef found for $form") if $formDef;
-    writeDebug("formDef NOT found for $form") unless $formDef;
+    _writeDebug("formDef found for $form") if $formDef;
+    _writeDebug("formDef NOT found for $form") unless $formDef;
   } else {
-    writeDebug("no form in query");
+    _writeDebug("no form in query");
   }
 
   my @webs = map { my $tmp = $_; $tmp =~ s/\//./g; $tmp } split (/\s*,\s*/, $request->param("webs") || '');
@@ -245,8 +260,11 @@ sub buildQuery {
   my $globalFilter = $request->param('search[value]') || '';
   my $regexFlag = ($request->param("search[regex]") || 'false') eq 'true' ? 1 : 0; 
 
-  $globalFilter =~ s/\s*$/*/ unless $regexFlag || $globalFilter eq '' || $globalFilter =~ /\b(AND|OR|NOT)\b|["']|([\*\+\~\/]\s*$)/;
-  push @query, $globalFilter;
+  if ($regexFlag || $globalFilter eq '' || $globalFilter =~ /\b(AND|OR|NOT)\b|["']|([\*\+\~\/]\s*$)/) {
+    push @query, $globalFilter;
+  } else {
+    push @query, "('$globalFilter' OR $globalFilter*)";
+  }
 
   # build column filter
   foreach my $column (@columns) {
@@ -271,12 +289,16 @@ sub buildQuery {
     if ($regexFlag) {
       push @query, $neg . $desc->{search} . ':/' . $filter . '/';
     } else {
-      $filter =~ s/\s*$/*/ unless 
-          $filter eq '' 
+      my $thisFilter;
+      if ($filter eq '' 
           || $desc->{type} =~ /^(number|score)/ 
-          || $filter =~ /\b(AND|OR|NOT)\b|["']|([\*\+\~\/]\s*$)/;
+          || $filter =~ /\b(AND|OR|NOT)\b|["']|([\*\+\~\/]\s*$)/) {
+        $thisFilter = $filter;
+      } else {
+        $thisFilter = "('$filter' OR $filter*)";
+      }
 
-      push @query, $neg . $desc->{search} . ':(' . $filter . ')';
+      push @query, $neg . $desc->{search} . ':(' . $thisFilter . ')';
     }
   }
 
@@ -285,7 +307,7 @@ sub buildQuery {
 
   my $query = "";
   $query = join(' ', @query) if @query;
-  writeDebug("query=$query");
+  #_writeDebug("query=$query");
 
   $this->{_filterQuery} = \@filterQuery;
 
@@ -294,7 +316,7 @@ sub buildQuery {
 
 =begin TML
 
----++ ClassMethod getValueOfResult( $doc, $property, $fieldDef ) -> $value
+---++ ObjectMethod getValueOfResult( $doc, $property, $fieldDef ) -> $value
 
 get a property of a result document
 
@@ -312,7 +334,7 @@ sub getValueOfResult {
 
 =begin TML
 
----++ ClassMethod search( %params ) -> ($total, $totalFiltered, $data)
+---++ ObjectMethod search( %params ) -> ($total, $totalFiltered, $data)
 
 perform the actual search and fetch result 
 
@@ -347,7 +369,7 @@ sub search {
     my $desc = $this->getColumnDescription($f, $formDef); 
     push @fl, $desc->{data};
   }
-  push @fl, "form", "web", "topic, score";
+  push @fl, "form", "web", "topic";
 
   my @qf = ();
   foreach my $f (@fl) {
@@ -360,8 +382,6 @@ sub search {
     }
   }
 
-  writeDebug("qf=@qf");
-  writeDebug("q=$params{query}");
 
   my @data = ();
   my $start = $params{skip} || 0;
@@ -369,6 +389,10 @@ sub search {
   my $totalFiltered;
   my $limit = $params{limit} || 0;
   $limit = 0 if $limit < 0;
+
+  _writeDebug("qf=@qf");
+  _writeDebug("q=$params{query}");
+  _writeDebug("fq=".join(" ", @{$this->{_filterQuery}}));
 
   $searcher->iterate({
       q => $params{query},
@@ -399,6 +423,11 @@ sub search {
 
   my $total = $totalFiltered;    # SMELL
   return ($total, $totalFiltered, \@data);
+}
+
+sub _writeDebug {
+  return unless TRACE;
+  print STDERR "SolrConnector - $_[0]\n";
 }
 
 1;

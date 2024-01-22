@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1634311537" format="1.1" reprev="2" version="3"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1668674214" format="1.1" version="1"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -55,7 +55,7 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =searching= | switch on/off the global search box (see [[https://datatables.net/reference/option/searching][docu]]) | =off= |
 | =searchmode= | defines how to search, either using one search box covering all columns (=global=), or using one search box per column (=multi=) | =global= |
 | =searchdelay= | delay before changes in a search box will cause new data to be fetched from the backend | =400= |
-| =sort= | specifies the column for initial ordering (see [[https://datatables.net/reference/option/order][docu]]) | first column |
+| =sort= | specifies the column for initial ordering; note that sorting is performed on the server side by default  | first column |
 | =reverse= | specifies the initial ordering direction | =off= |
 | =savestate= | switch on/off remembering the state the datatable was in when coming back to the page; this includes sorting, paging as well as filtering; state information is stored in the browser's session store, that is state information is specific to the browser tab; closing a browser tab will purge all state infos of datatables with it | =off= |
 | =info= | switch on/off the info about the number of rows in the set (see [[https://datatables.net/reference/option/info][docu]]) | =off= |
@@ -75,6 +75,7 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =rowclass= | javascript function that is supposed to return a css class when a row is rendered; the string returned is added as a class to the row elements of the table | |
 | =rowcss= | javascript function that is supposed to return a string or an object to apply inline css to all cells of a row | |
 | =autocolor= | comma-separted list of columns to auto-color based on the cell content; note this needs the [[Foswiki:Extensions/JQAutoColorContrib][JQAutoColorContrib]] to be installed and activated | |
+| =datetimeformat= | date format to be recognized by the frontend | |
 | =&lt;field-name>_title= | a column title for a given =field-name=, e.g. =ProjectState_title="Status"= | name of the formfield as specified in =columns= |
 | =&lt;field-name>_width= | column width for a given field, e.g. =ProjectID_width=5em= | |
 
@@ -369,6 +370,11 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  22 Jan 2024: | new perl api to register more datatable connectors; \
+                  added parameter =datetimeformat=; \
+                  fixed display of value-mapped columns/fields; \
+                  fixed query builder of solr backend |
+|  23 Oct 2023: | add =Web= and =TopicType= columns |
 |  04 May 2022: | added DATATABLESECTION, ENDDATATABLESECTION, deprecate HTML5 approach; \
                   removed special =/= prefix from column names; \
                   new api =Foswiki::Plugins::JQDataTablesPluginEnabled::describeColumn()= to register custom datatable columns |
@@ -408,7 +414,7 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012 SvenDowideit@fosiki.com, 2013-2022 Michael Daum"}%
+%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012 SvenDowideit@fosiki.com, 2013-2024 Michael Daum"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
 %META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25TOPIC%25"}%
 %META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25TOPIC%25"}%

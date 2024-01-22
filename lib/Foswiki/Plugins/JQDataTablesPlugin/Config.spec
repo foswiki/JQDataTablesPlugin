@@ -7,7 +7,7 @@ $Foswiki::cfg{JQDataTablesPlugin}{DefaultConnector} = 'search';
 
 # **STRING 50**
 # Implementation handling the default <code>search</code> connector based on Foswiki's standard <code>%SEARCH</code>
-# implementation. Note that for adequat performance using jqGrid you are recommended to use a better search algorithm than the default
+# implementation. Note that for adequat performance you are recommended to use a better search algorithm than the default
 # grep-based, or use the DBCachePlugin or SolrPlugin backends. See Foswiki::Store::SearchAlgorithms.
 $Foswiki::cfg{JQDataTablesPlugin}{Connector}{search} =
   'Foswiki::Plugins::JQDataTablesPlugin::SearchConnector';

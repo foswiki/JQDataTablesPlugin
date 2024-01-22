@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2024 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -15,6 +15,14 @@
 
 package Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector;
 
+=begin TML
+
+---+ package Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector
+
+base class for grid connectors that deal with foswiki topic data
+
+=cut
+
 use strict;
 use warnings;
 
@@ -28,15 +36,7 @@ our @ISA = qw( Foswiki::Plugins::JQDataTablesPlugin::Connector );
 
 =begin TML
 
----+ package Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector
-
-base class for grid connectors that deal with foswiki topic data
-
-=cut
-
-=begin TML
-
----++ ClassMethod restHandleSave( $request, $response )
+---++ ObjectMethod restHandleSave( $request, $response )
 
 a standard save backend. it assumes that columns in a grid correspond
 to formfields of a !DataForm being attached to the target topic. The 
@@ -146,7 +146,7 @@ sub getForm {
   my $formDef;
 
   try {
-    $formDef = new Foswiki::Form($this->{session}, $web, $topic);
+    $formDef = Foswiki::Form->new($this->{session}, $web, $topic);
   } catch Error with {
     # nope
   };
@@ -156,7 +156,7 @@ sub getForm {
 
 =begin TML
 
----++ ClassMethod convertResult( %params ) -> \%row
+---++ ObjectMethod convertResult( %params ) -> \%row
 
 convert a result to a rows for datatable.
 
@@ -185,7 +185,6 @@ sub convertResult {
       my $form = $this->getValueOfResult($params{result}, "form");
       $formDef = $this->getForm($web, $form);
     }
-    next unless $formDef;
 
     my $desc = $this->getColumnDescription($fieldName, $formDef);
     next if !$desc || $desc->{data} eq '#';
@@ -274,7 +273,8 @@ sub convertResult {
         || $desc->{type} eq 'user'
       )) {
       my @html = ();
-      foreach my $item (split(/\s*,\s*/, $fieldValue)) {
+      foreach my $item (sort split(/\s*,\s*/, $fieldValue)) {
+        #next if $item eq 'AdminUser'; # SMELL: hard coded exclude value
         if (Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $item)) {
           my $topicTitle = Foswiki::Func::getTopicTitle($Foswiki::cfg{UsersWebName}, $item);
           push @html, "<a href='" . Foswiki::Func::getViewUrl($Foswiki::cfg{UsersWebName}, $item) . "' style='white-space:nowrap'>$topicTitle</a>";
@@ -285,6 +285,13 @@ sub convertResult {
       $cell = {
         "display" => join(", ", @html),
         "raw" => $fieldValue || "",
+      };
+    } elsif (!$isEscaped && $desc->{type} eq 'web') {
+      my ($thisWeb, $thisTopic) = Foswiki::Func::normalizeWebTopicName($fieldValue, $Foswiki::cfg{HomeTopicName});
+      my $html = "<a href='" . Foswiki::Func::getViewUrl($thisWeb, $thisTopic) . "'>".Foswiki::Func::getTopicTitle($thisWeb, $thisTopic)."</a>";
+      $cell = {
+        display => $html,
+        raw => $fieldValue || ''
       };
     } elsif (!$isEscaped && (
         ($fieldDef && $fieldDef->{type} =~ /^(cat|topic)/) 
@@ -318,7 +325,7 @@ sub convertResult {
 
       my $html =
         $fieldValue
-        ? "<img src='$url' style='max-width:100%;max-height:5em' />"
+        ? "<img src='$url' style='max-width:100%;width:5em;height:5em;object-fit:cover' />"
         : "";
 
       $cell = {
@@ -371,7 +378,7 @@ sub convertResult {
       }
 
       if ($isLinked) {
-        $html = "<a href='" . Foswiki::Func::getViewUrl($web, $topic) . "'>$html</a>",
+        $html = "<a href='" . Foswiki::Func::getViewUrl($web, $topic) . "'>$html</a>";
       }
 
       $cell = {
@@ -389,5 +396,20 @@ sub convertResult {
 
   return \%row;
 }
+
+=begin TML
+
+---++ ObjectMethod isValueMapped( $fieldDef ) -> $boolean
+
+should be in FieldDefinition
+
+=cut
+
+sub isValueMapped {
+  my ($this, $fieldDef) = @_;
+
+  return $fieldDef ? $fieldDef->can("isValueMapped") ? $fieldDef->isValueMapped() : $fieldDef->{type} =~ /\+values/ : 0;
+}
+
 
 1;

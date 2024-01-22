@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# JQDataTablesPlugin is Copyright (C) 2013-2022 Michael Daum http://michaeldaumconsulting.com
+# JQDataTablesPlugin is Copyright (C) 2013-2024 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -191,6 +191,8 @@ sub parseParams {
   $data{"searching"} = $theSearching;
   $data{"search-mode"} = $theSearchMode;
 
+  my $theDateTimeFormat = $params->{datetimeformat};
+  $data{"date-time-format"} = $theDateTimeFormat if defined $theDateTimeFormat;
 
   my $theSaveState = Foswiki::Func::isTrue($params->{savestate}, 0) ? 'true' : 'false';
   if ($theSaveState eq 'true') {
@@ -278,7 +280,7 @@ sub parseParams {
       $text = "%MAKETEXT{Save to PDF}%" if $button eq "pdf";
       $text //= $button;
       push @buttons, {
-        extend => $button."Html5",
+        extend => $button.($button =~ /^(copy|csv|excel|pdf)$/ ? "Html5": ""),
         text => $text,
         exportOptions => {
           columns => ":visible",
@@ -374,7 +376,7 @@ sub parseParams {
       searchable => JSON::false,
       orderable => JSON::false,
       };
-    push @thead, "<th><input type='checkbox' class='selectAll' /></th>";
+    push @thead, $theSelectMode eq 'multi' ? "<th><input type='checkbox' class='selectAll foswikiCheckbox' /></th>" : "<th></th>";
     push @multiFilter, "<th></th>";
     $index++;
   }

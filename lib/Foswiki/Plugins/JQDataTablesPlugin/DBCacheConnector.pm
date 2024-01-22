@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2022 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2024 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,6 +14,14 @@
 # http://www.gnu.org/copyleft/gpl.html
 
 package Foswiki::Plugins::JQDataTablesPlugin::DBCacheConnector;
+
+=begin TML
+
+---+ package Foswiki::Plugins::JQDataTablesPlugin::DBCacheConnector
+
+implements the grid connector interface using a DBCachePlugin based backend
+
+=cut
 
 use strict;
 use warnings;
@@ -31,18 +39,12 @@ our @ISA = qw( Foswiki::Plugins::JQDataTablesPlugin::FoswikiConnector );
 use constant TRACE => 0;    # toggle me
 #use Data::Dump qw(dump);
 
-sub writeDebug {
-  return unless TRACE;
-
-  #Foswiki::Func::writeDebug("DBCacheConnector - $_[0]");
-  print STDERR "DBCacheConnector - $_[0]\n";
-}
 
 =begin TML
 
----+ package Foswiki::Plugins::JQDataTablesPlugin::DBCacheConnector
+---++ ClassMethod new($session)
 
-implements the grid connector interface using a DBCachePlugin based backend
+constructor
 
 =cut
 
@@ -53,14 +55,20 @@ sub new {
 
   # maps column names to accessors to the actual property being displayed
   $this->{columnDescription} = {
+    'Web' => {
+      type => 'web',
+      data => 'web',
+      search => 'lc(webtitle)',
+      sort => 'lc(webtitle)',
+    },
     'Topic' => {
-      type => "topic",
+      type => 'topic',
       data => 'topic',
       search => 'lc(topic)',
       sort => 'lc(topic)',
     },
     'TopicTitle' => {
-      type => "default",
+      type => 'default',
       data => 'topictitle',
       search => 'lc(topictitle)',
       sort => 'lc(topictitle)',
@@ -124,7 +132,7 @@ sub new {
 
 =begin TML
 
----++ ClassMethod getColumnDescription( $columnName, $formDef ) -> \%desc
+---++ ObjectMethod getColumnDescription( $columnName, $formDef ) -> \%desc
 
 also consider the form definition
 
@@ -143,7 +151,7 @@ sub getColumnDescription {
   if (defined $desc) {
     unless (ref($desc)) {
       $desc = {
-        type => "default",
+        type => 'default',
         data => $desc,
         search => $desc,
         sort => $desc,
@@ -151,7 +159,7 @@ sub getColumnDescription {
     }
   } else {
     $desc = {
-      type => $fieldDef ? "formfield" : "default",
+      type => $fieldDef ? 'formfield' : 'default',
       data => $columnName,
       search => $fieldDef ? "lc(displayValue('$columnName'))" : "lc($columnName)",
       sort => "lc($columnName)"
@@ -185,7 +193,7 @@ sub getColumnDescription {
 
 =begin TML
 
----++ ClassMethod buildQuery() -> $query
+---++ ObjectMethod buildQuery() -> $query
 
 creates a query based on the current request
 
@@ -205,15 +213,15 @@ sub buildQuery {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $form);
 
     $formDef = $this->getForm($formWeb, $formTopic);
-    writeDebug("formDef found for $form") if $formDef;
-    writeDebug("formDef NOT found for $form") unless $formDef;
+    _writeDebug("formDef found for $form") if $formDef;
+    _writeDebug("formDef NOT found for $form") unless $formDef;
   } else {
-    writeDebug("no form in query");
+    _writeDebug("no form in query");
   }
 
   my @columns = $this->getColumnsFromRequest($request);
 
-  #writeDebug("columns=".dump(\@columns));
+  #_writeDebug("columns=".dump(\@columns));
 
   # build global filter
   my $globalFilter = $request->param('search[value]');
@@ -297,14 +305,14 @@ sub buildQuery {
   my $query = "";
   $query = join(' AND ', @query) if @query;
 
-  writeDebug("query=$query");
+  _writeDebug("query=$query");
 
   return $query;
 }
 
 =begin TML
 
----++ ClassMethod getValueOfResult( $db, $property, $fieldDef ) -> $value
+---++ ObjectMethod getValueOfResult( $db, $property, $fieldDef ) -> $value
 
 get a property of a result document
 
@@ -321,14 +329,18 @@ sub getValueOfResult {
 
   # use dbcache
   my $val = $result->{db}->expandPath($result->{obj}, $property);
+
   $val = "" if ref($val); # may return a map obj
+  if ($fieldDef && (!defined($val) || $val eq "")) {
+    $val = $fieldDef->getDefaultValue() // '';
+  }
 
   return $val;
 }
 
 =begin TML
 
----++ ClassMethod search( %params ) -> ($total, $totalFiltered, $data)
+---++ ObjectMethod search( %params ) -> ($total, $totalFiltered, $data)
 
 perform the actual search and fetch result 
 
@@ -336,6 +348,9 @@ perform the actual search and fetch result
 
 sub search {
   my ($this, %params) = @_;
+
+  _writeDebug("called search");
+  #_writeDebug("params=".dump(\%params)) if TRACE;
 
   my $formDef;
   $formDef = $this->getForm(undef $params{form}) if $params{form};
@@ -363,6 +378,7 @@ sub search {
   try {
     my $core = Foswiki::Plugins::DBCachePlugin::getCore();
     foreach my $web (@{$params{webs}}) {
+      _writeDebug("web=$web");
 
       my $db = Foswiki::Plugins::DBCachePlugin::getDB($web);
       next unless $db;
@@ -371,6 +387,7 @@ sub search {
       # flag the current web we evaluate this query in, used by web-specific operators
       $core->currentWeb($web);
 
+      _writeDebug("query=$params{query}");
       $hits = $db->dbQuery($params{query}, $params{topics}, $sort, $reverse, $params{include}, $params{exclude}, $hits, $params{context});
 
       $core->currentWeb("");
@@ -380,15 +397,20 @@ sub search {
     print STDERR "DBCacheConnector: ERROR - $error\n";
   };
 
+  _writeDebug("nothing found") unless $hits;
   return (0, 0, []) unless $hits;
 
   my @data = ();
+  my $stats = {};
 
   my $index = $params{skip} ? $hits->skip($params{skip}) : 0;
   while (my $topicObj = $hits->next) {
     $index++;
 
     my $web = $topicObj->fastget("web");
+    my $topic = $topicObj->fastget("topic");
+    _writeDebug("found $topic");
+
     my $db = Foswiki::Plugins::DBCachePlugin::getDB($web);
     my $row = $this->convertResult(
       fields => $params{fields},
@@ -400,13 +422,23 @@ sub search {
       formDef => $formDef
     );
 
+    $this->addStats($stats, $row, \%params);
+    _writeDebug("no row for $topic") unless $row;
+
     push @data, $row if $row;
     last if $params{limit} > 0 && $index >= $params{skip} + $params{limit};
   }
 
   my $totalFiltered = $hits->count;
 
-  return ($total, $totalFiltered, \@data);
+  return ($total, $totalFiltered, \@data, $stats);
+}
+
+sub _writeDebug {
+  return unless TRACE;
+
+  #Foswiki::Func::writeDebug("DBCacheConnector - $_[0]");
+  print STDERR "DBCacheConnector - $_[0]\n";
 }
 
 1;

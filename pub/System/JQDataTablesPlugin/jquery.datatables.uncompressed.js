@@ -2075,7 +2075,6 @@
 	
 		oCol.fnGetData = function (rowData, type, meta) {
 			var innerData = mData( rowData, type, undefined, meta );
-	
 			return mRender && type ?
 				mRender( innerData, type, rowData, meta ) :
 				innerData;
