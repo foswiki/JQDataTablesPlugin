@@ -101,18 +101,16 @@ sub handleDataTableSection {
   my $error;
 
   try {
-    $data = $this->parseParams($params, $web, $topic);
+    $data = $this->parseParams($params, $web, $topic, 1);
   } otherwise {
     $error = shift;
     $error =~ s/ at .*$//;
   };
-  
+
   return _inlineError($error) if defined $error;
 
-  delete $data->{columns};
   delete $data->{ajax};
   delete $data->{"server-side"};
-
 
   my $html5Data = $this->formatHtml5Data($data) // "";
   #print STDERR "html5Data=$html5Data\n";
@@ -157,7 +155,7 @@ HERE
 }
 
 sub parseParams {
-  my ($this, $params, $web, $topic) = @_;
+  my ($this, $params, $web, $topic, $isSection) = @_;
 
   my %data = ();
 
@@ -354,37 +352,37 @@ sub parseParams {
   my @columns = ();
 
   push @thead, "<tr>";
-  my $index = 0;
-
-  unless (grep { my $fieldName = ref($_) ? $_->{name} : $_; $fieldName =~ /^($theSelectProperty)$/i } @columnFields) {
-    push @columns,
-      {
-      data => $theSelectProperty,
-      name => $theSelectProperty,
-      visible => JSON::false,
-      };
-    push @thead, "<th>$theSelectProperty</th>";
-    push @multiFilter, "<th></th>";
-    $index++;
-  }
-
-  if ($theSelecting) {
-    push @columns,
-      {
-      name => "null",
-      data => "null",
-      searchable => JSON::false,
-      orderable => JSON::false,
-      };
-    push @thead, $theSelectMode eq 'multi' ? "<th><input type='checkbox' class='selectAll foswikiCheckbox' /></th>" : "<th></th>";
-    push @multiFilter, "<th></th>";
-    $index++;
-  }
 
   my $theOrdering = Foswiki::Func::isTrue($params->{ordering}, 1);
   my $theReverse = $params->{reverse} || 'off';
   my %order = (); 
-  if (@columnFields) {
+  unless ($isSection) {
+    my $index = 0;
+    unless (grep { my $fieldName = ref($_) ? $_->{name} : $_; $fieldName =~ /^($theSelectProperty)$/i } @columnFields) {
+      push @columns,
+        {
+        data => $theSelectProperty,
+        name => $theSelectProperty,
+        visible => JSON::false,
+        };
+      push @thead, "<th>$theSelectProperty</th>";
+      push @multiFilter, "<th></th>";
+      $index++;
+    }
+
+    if ($theSelecting) {
+      push @columns,
+        {
+        name => "null",
+        data => "null",
+        searchable => JSON::false,
+        orderable => JSON::false,
+        };
+      push @thead, $theSelectMode eq 'multi' ? "<th><input type='checkbox' class='selectAll foswikiCheckbox' /></th>" : "<th></th>";
+      push @multiFilter, "<th></th>";
+      $index++;
+    }
+
     foreach my $fieldDef (@columnFields) {
       my $fieldName;
       if (ref($fieldDef)) {
@@ -456,17 +454,29 @@ sub parseParams {
       $index++;
     }
   } else {
-    foreach my $index (split(/\s*,\s*/, $theSort)) {
-      if ($theSort =~ /\b$index\b/) {
+    foreach my $fieldName (@columnFields) {
+      my $col = {
+        "name" => $fieldName,
+        "visible" => $hiddenColumns{$fieldName} ? JSON::false : JSON::true,
+        "orderable" => $theOrdering ? JSON::true : JSON::false,
+      };
+      my $width = $params->{$fieldName . '_width'};
+      $col->{width} = $width if defined $width;
+      push @columns, $col;
+    }
+    my $index = 0;
+    foreach my $fieldName (split(/\s*,\s*/, $theSort)) {
+      if ($theSort =~ /\b$fieldName\b/) {
         my $reverse = 'asc';
-        if ($theReverse =~ /\b$index\b/) {
+        if ($theReverse =~ /\b$fieldName\b/) {
           $reverse = 'desc';
         } else {
           $reverse = ($theReverse =~ /^\s*(on|true|1|no)\s*$/) ? 'desc' : 'asc';
         }
 
-        $order{$index} = [$index, $reverse];
+        $order{$fieldName} = [$index, $reverse];
       }
+      $index++;
     }
   }
   push @thead, "</tr>";
@@ -488,7 +498,7 @@ sub parseParams {
 
   $data{"order"} = \@order;
   $data{"_thead"} = join("\n", @thead);
-  $data{"columns"} = \@columns;
+  $data{"columns"} = \@columns if @columns;
 
   my $time = time();
   my $url = Foswiki::Func::getScriptUrl("JQDataTablesPlugin", "connector", "rest");
@@ -531,7 +541,7 @@ sub parseParams {
   }
 
   $data{"server-side"} = "true";
-  $data{"ajax"} =$ajax;
+  $data{"ajax"} = $ajax;
 
   return \%data;
 }

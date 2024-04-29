@@ -22,7 +22,7 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '7.20';
+our $VERSION = '7.30';
 our $RELEASE = '%$RELEASE%';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 our $LICENSECODE = '%$LICENSECODE%';

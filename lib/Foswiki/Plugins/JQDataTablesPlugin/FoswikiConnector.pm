@@ -325,7 +325,7 @@ sub convertResult {
 
       my $html =
         $fieldValue
-        ? "<img src='$url' style='max-width:100%;width:5em;height:5em;object-fit:cover' />"
+        ? "<img src='$url' style='width:5em;heigh:auto;max-height:5em;object-fit:fill' />"
         : "";
 
       $cell = {
@@ -361,7 +361,7 @@ sub convertResult {
         if ($fieldDef->can("getDisplayValue")) {
           $html = $fieldDef->getDisplayValue($fieldValue, $web, $topic);
         } else {
-          $html = $fieldDef->renderForDisplay('$value(display)', $fieldValue, undef, $web, $topic);
+          $html = $fieldDef->renderForDisplay('$value(display)', $fieldValue);
         }
         
         $html = Foswiki::Func::decodeFormatTokens($html);
