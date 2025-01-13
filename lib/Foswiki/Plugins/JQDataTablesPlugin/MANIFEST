@@ -16,6 +16,7 @@ lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/Scroller.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/Select.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DBCacheConnector.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DEPENDENCIES 0644
+lib/Foswiki/Plugins/JQDataTablesPlugin/MANIFEST 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/FoswikiConnector.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/SearchConnector.pm 0644
@@ -56,7 +57,6 @@ pub/System/JQDataTablesPlugin/ColReorder/js/colReorder.jqueryui.js 0644
 pub/System/JQDataTablesPlugin/ColReorder/js/colReorder.jqueryui.min.js 0644
 pub/System/JQDataTablesPlugin/ColReorder/js/dataTables.colReorder.js 0644
 pub/System/JQDataTablesPlugin/ColReorder/js/dataTables.colReorder.min.js 0644
-pub/System/JQDataTablesPlugin/currency.js.gz 0644
 pub/System/JQDataTablesPlugin/currency.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/DataTables/css/dataTables.jqueryui.css 0644
 pub/System/JQDataTablesPlugin/DataTables/css/dataTables.jqueryui.min.css 0644
@@ -71,7 +71,6 @@ pub/System/JQDataTablesPlugin/DataTables/js/dataTables.jqueryui.js 0644
 pub/System/JQDataTablesPlugin/DataTables/js/dataTables.jqueryui.min.js 0644
 pub/System/JQDataTablesPlugin/DataTables/js/jquery.dataTables.js 0644
 pub/System/JQDataTablesPlugin/DataTables/js/jquery.dataTables.min.js 0644
-pub/System/JQDataTablesPlugin/date-foswiki.js.gz 0644
 pub/System/JQDataTablesPlugin/date-foswiki.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/datetime-moment.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/FixedColumns/css/fixedColumns.dataTables.css 0644
@@ -100,7 +99,6 @@ pub/System/JQDataTablesPlugin/jquery.datatables.addons.js.gz 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.addons.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.css 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.css.gz 0644
-pub/System/JQDataTablesPlugin/jquery.datatables.init.js.gz 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.init.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.js 0644
 pub/System/JQDataTablesPlugin/jquery.datatables.js.gz 0644
@@ -119,7 +117,6 @@ pub/System/JQDataTablesPlugin/KeyTable/js/keyTable.dataTables.js 0644
 pub/System/JQDataTablesPlugin/KeyTable/js/keyTable.jqueryui.js 0644
 pub/System/JQDataTablesPlugin/KeyTable/js/keyTable.jqueryui.min.js 0644
 pub/System/JQDataTablesPlugin/Makefile 0644
-pub/System/JQDataTablesPlugin/metrics.js.gz 0644
 pub/System/JQDataTablesPlugin/metrics.uncompressed.js 0644
 pub/System/JQDataTablesPlugin/pdfmake/pdfmake.js 0644
 pub/System/JQDataTablesPlugin/pdfmake/pdfmake.min.js 0644

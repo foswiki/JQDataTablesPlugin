@@ -13,7 +13,7 @@ ADDONS_SOURCE=\
 -include $(FOSWIKI_ROOT)/pub/System/JQueryPlugin/Makefile.include
 
 clean:
-	rm -f $(TARGET) *.gz *.map
+	rm -f $(TARGET) *.gz *.map jquery.datatables.addons.uncompressed.js
 
 jquery.datatables.uncompressed.js: DataTables/js/jquery.dataTables.js
 	@echo generating $@

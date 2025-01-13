@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# JQDataTablesPlugin is Copyright (C) 2013-2024 Michael Daum http://michaeldaumconsulting.com
+# JQDataTablesPlugin is Copyright (C) 2013-2025 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -41,7 +41,7 @@ sub new {
       css => ['jquery.datatables.css'],
       javascript => ['jquery.datatables.js', 'jquery.datatables.addons.js'],
       i18n => $Foswiki::cfg{SystemWebName} . "/JQDataTablesPlugin/i18n",
-      dependencies => ['metadata', 'i18n', 'moment', 'pnotify'],
+      dependencies => ['i18n', 'moment', 'pnotify'],
       summary => <<SUMMARY), $class);
 !DataTables is a plug-in for the jQuery Javascript library. It is a highly
 flexible tool, based upon the foundations of progressive enhancement, which
@@ -309,6 +309,12 @@ sub parseParams {
     $data{"row-class"} = $theRowClass;
   }
 
+  my $theRowCallback = $params->{rowcallback};
+  if (defined $theRowCallback) {
+    $data{"row-callback"} = $theRowCallback;
+  }
+
+
   my $theAutoColor = $params->{autocolor};
   if (defined $theAutoColor) {
     $data{"auto-color"} = $theAutoColor;
@@ -454,29 +460,39 @@ sub parseParams {
       $index++;
     }
   } else {
-    foreach my $fieldName (@columnFields) {
-      my $col = {
-        "name" => $fieldName,
-        "visible" => $hiddenColumns{$fieldName} ? JSON::false : JSON::true,
-        "orderable" => $theOrdering ? JSON::true : JSON::false,
-      };
-      my $width = $params->{$fieldName . '_width'};
-      $col->{width} = $width if defined $width;
-      push @columns, $col;
+    my %columns = ();
+
+    my %indexes = map {$_ => 1} @columnFields;
+    $indexes{$_} = 1 foreach keys %hiddenColumns;
+    foreach my $key (keys %$params) {
+      if ($key =~ /^(.*)_width$/) {
+        $indexes{$1} = 1;
+      }
     }
-    my $index = 0;
-    foreach my $fieldName (split(/\s*,\s*/, $theSort)) {
-      if ($theSort =~ /\b$fieldName\b/) {
+
+    foreach my $index (keys %indexes) {
+      my $col = $columns{$index} // {
+        name => $index, 
+        visible => $hiddenColumns{$index} ? JSON::false : JSON::true,
+        orderable => $theOrdering ? JSON::true : JSON::false,
+      };
+      my $width = $params->{$index . '_width'};
+      $col->{width} = $width if defined $width;
+      $columns{$index} = $col;
+    }
+    @columns = sort {$a->{name} <=> $b->{name}} values %columns;
+
+    foreach my $index (split(/\s*,\s*/, $theSort)) {
+      if ($theSort =~ /\b$index\b/) {
         my $reverse = 'asc';
-        if ($theReverse =~ /\b$fieldName\b/) {
+        if ($theReverse =~ /\b$index\b/) {
           $reverse = 'desc';
         } else {
           $reverse = ($theReverse =~ /^\s*(on|true|1|no)\s*$/) ? 'desc' : 'asc';
         }
 
-        $order{$fieldName} = [$index, $reverse];
+        $order{$index} = [$index, $reverse];
       }
-      $index++;
     }
   }
   push @thead, "</tr>";
@@ -558,6 +574,5 @@ sub _inlineError {
 
   return "<span class='foswikiAlert'>Error: $msg</span>";
 }
-
 
 1;

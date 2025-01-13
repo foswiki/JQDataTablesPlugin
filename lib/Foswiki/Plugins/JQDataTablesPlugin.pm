@@ -1,7 +1,7 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 # 
 # Copyright (C) 2012 SvenDowideit@fosiki.com, 
-# Copyright (C) 2013-2024 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2013-2025 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,7 +22,7 @@ use Foswiki::Plugins::JQueryPlugin ();
 use Foswiki::Func ();
 use Foswiki::AccessControlException ();
 
-our $VERSION = '7.30';
+our $VERSION = '7.50';
 our $RELEASE = '%$RELEASE%';
 our $SHORTDESCRIPTION = 'JQuery based progressive enhancement of tables';
 our $LICENSECODE = '%$LICENSECODE%';
@@ -147,6 +147,10 @@ sub handleEndDataTableSection {
 
 sub restConnector {
   my ($session, $subject, $verb, $response) = @_;
+
+  # SMELL: how do we end here when the status is already error-ish
+  my $status = $session->{response}->status() // '';
+  return "" if $status =~ /^[54]/;
 
   my $request = Foswiki::Func::getRequestObject();
 

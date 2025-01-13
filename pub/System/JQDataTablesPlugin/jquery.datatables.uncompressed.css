@@ -153,10 +153,8 @@ table.dataTable th .ui-icon {
   background: #efffd8;
 
   /* http://colorzilla.com/gradient-editor/#ffffff+0,efffd8+100;Custom */
-  background: -moz-linear-gradient(top, #efffd8 0%, #ffffff 11%, #efffd8 100%);
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#efffd8), color-stop(11%,#ffffff), color-stop(100%,#efffd8));
   background: -webkit-linear-gradient(top, #efffd8 0%,#ffffff 11%,#efffd8 100%);
-  background: -o-linear-gradient(top, #efffd8 0%,#ffffff 11%,#efffd8 100%);
   background: linear-gradient(top, #efffd8 0%,#ffffff 11%,#efffd8 100%);
 }
 table.dataTable.processing {
@@ -249,8 +247,6 @@ table.dataTable tbody td.dt-body-nowrap {
 table.dataTable,
 table.dataTable th,
 table.dataTable td {
-  -webkit-box-sizing: content-box;
-  -moz-box-sizing: content-box;
   box-sizing: content-box;
 }
 

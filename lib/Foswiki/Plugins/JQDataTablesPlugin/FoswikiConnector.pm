@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2024 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2025 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -126,7 +126,7 @@ sub restHandleSave {
   }
 
   # any exceptions are catched by the calling code
-  Foswiki::Func::saveTopic($web, $topic, $meta, $text);
+  $meta->save();
 }
 
 =begin TML
@@ -293,10 +293,7 @@ sub convertResult {
         display => $html,
         raw => $fieldValue || ''
       };
-    } elsif (!$isEscaped && (
-        ($fieldDef && $fieldDef->{type} =~ /^(cat|topic)/) 
-        || $desc->{type} eq 'topic'
-      )) {
+    } elsif (!$isEscaped && $fieldDef && $fieldDef->{type} eq 'cat') {
 
       my @html = ();
       foreach my $item (split(/\s*,\s*/, $fieldValue)) {
@@ -306,6 +303,17 @@ sub convertResult {
         $html = '<noautolink> ' . $html . ' </noautolink>';    # SMELL: if $params{noautolink}
         $html = Foswiki::Func::renderText($html, $thisWeb, $thisTopic);
         push @html, $html;
+      }
+
+      $cell = {
+        "display" => join(", ", @html),
+        "raw" => $fieldValue || "",
+      };
+    } elsif (!$isEscaped && (($fieldDef && $fieldDef->{type} eq 'topic') || $desc->{type} eq 'topic')) {
+
+      my @html = ();
+      foreach my $item (split(/\s*,\s*/, $fieldValue)) {
+        push @html, $fieldDef->getDisplayValue($item);
       }
 
       $cell = {
@@ -325,7 +333,7 @@ sub convertResult {
 
       my $html =
         $fieldValue
-        ? "<img src='$url' style='width:5em;heigh:auto;max-height:5em;object-fit:fill' />"
+        ? "<img src='$url' style='width:5em;height:auto;object-fit:cover' />"
         : "";
 
       $cell = {

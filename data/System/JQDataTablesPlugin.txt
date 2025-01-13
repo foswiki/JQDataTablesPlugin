@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1668674214" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1736783187" format="1.1" version="1"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -75,6 +75,7 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =rowclass= | javascript function that is supposed to return a css class when a row is rendered; the string returned is added as a class to the row elements of the table | |
 | =rowcss= | javascript function that is supposed to return a string or an object to apply inline css to all cells of a row | |
 | =autocolor= | comma-separted list of columns to auto-color based on the cell content; note this needs the [[https://foswiki.org/Extensions/JQAutoColorContrib][JQAutoColorContrib]] to be installed and activated | |
+| =rowcallback= | javascript function that is called for every row; parameters are =row=, =data=, =index= | |
 | =datetimeformat= | date format to be recognized by the frontend | |
 | =&lt;field-name>_title= | a column title for a given =field-name=, e.g. =ProjectState_title="Status"= | name of the formfield as specified in =columns= |
 | =&lt;field-name>_width= | column width for a given field, e.g. =ProjectID_width=5em= | |
@@ -370,6 +371,8 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  13 Jan 2025: | remove dependency on jquery.metadata; improve rendering of topic formfields; remove support for old browsers |
+|  06 Nov 2024: | added =rowcallback= |
 |  29 Apr 2024: | fixed sort/hide/select columns when using datatable sections |
 |  22 Jan 2024: | new perl api to register more datatable connectors; \
                   added parameter =datetimeformat=; \
@@ -415,7 +418,7 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012 SvenDowideit@fosiki.com, 2013-2024 Michael Daum"}%
+%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012 SvenDowideit@fosiki.com, 2013-2025 Michael Daum"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
 %META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25TOPIC%25"}%
 %META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25TOPIC%25"}%

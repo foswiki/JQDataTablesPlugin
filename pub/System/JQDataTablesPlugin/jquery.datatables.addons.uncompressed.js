@@ -449,12 +449,13 @@ jQuery(function($) {
   $('.jqDataTablesContainer table').livequery(function() {
     var $table = $(this),
         $container = $table.parents(".jqDataTablesContainer:first"), 
-        opts = $.extend({}, $container.data(), $container.metadata()),
+        opts = $.extend({}, $container.data()),
 	rowCallbacks = [];
 
     // create rowCallback
     if (typeof(opts.rowCallback) !== 'undefined') {
-      rowCallbacks.push(opts.rowCallback);
+      var fn = new Function("row", "data", "index", opts.rowCallback);
+      rowCallbacks.push(fn);
     }
     opts.rowCallback = function(row, data, index) {
       var self = this;
