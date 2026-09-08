@@ -414,7 +414,7 @@ $.extend( FixedHeader.prototype, {
 			null;
 		
 		if ( focus ) {
-			focus.blur();
+			focus.trigger("blur");
 		}
 
 		if ( mode === 'in-place' ) {

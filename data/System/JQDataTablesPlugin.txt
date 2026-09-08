@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1736783187" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1788867632" format="1.1" version="1"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -58,6 +58,7 @@ Syntax: =%<nop>DATATABLE{"&lt;query>" parameter="..." parameter="..." ...}%=
 | =sort= | specifies the column for initial ordering; note that sorting is performed on the server side by default  | first column |
 | =reverse= | specifies the initial ordering direction | =off= |
 | =savestate= | switch on/off remembering the state the datatable was in when coming back to the page; this includes sorting, paging as well as filtering; state information is stored in the browser's session store, that is state information is specific to the browser tab; closing a browser tab will purge all state infos of datatables with it | =off= |
+| =start= | page number to start displaying rows | 0 |
 | =info= | switch on/off the info about the number of rows in the set (see [[https://datatables.net/reference/option/info][docu]]) | =off= |
 | =ordering= | switch on/off the ability to sort the table by clicking on a column header (see [[https://datatables.net/reference/option/ordering][docu]]) | =on= |
 | =scrollx= | switch on/off horizontal scrolling (see [[https://datatables.net/reference/option/scrollX][docu]]) | =off= |
@@ -155,25 +156,22 @@ the formfield. There are however a few column names that have a special meaning 
 }%
 ---+++ DATATABLESECTION with formatted search
 
-This example generates a table dynamically using a [[%SYSTEMWEB%.FormattedSearch]]:
+This example generates a table dynamically using a [[https://foswiki.org/Extensions/DBCachePlugin][DBCachePlugin]]:
 
 %JQREQUIRE{"datatables" warn="off"}%
 <verbatim class="tml">
 %STARTSECTION{"example1"}%
-%DATATABLESECTION{paging="on" searching="on" info="on"}%
-%SEARCH{
-  "1"
-  type="query"
-  topic="*Plugin"
-  header="| *Name* | *Date* | *Author* |"
-  format="| $topic | $date | $wikiusername |"
-  nonoise="on"
+%DATATABLESECTION{paging="off" searching="on" info="on" width="100%"}%
+%DBQUERY{
+   include=".*Plugin$"
+   header="| *Name* | *Date* | *Author* |$n"
+   format="| [[$web.$topic]] | $formatTime(info.date) | $wikiName(info.author) |"
 }%
 %ENDDATATABLESECTION%
 %ENDSECTION{"example1"}%
 </verbatim>
 
-%IF{"context JQDataTablesPluginEnabled" 
+%IF{"context JQDataTablesPluginEnabled and context DBCachePluginEnabled" 
   then="$percntINCLUDE{\"%WEB%.%TOPIC%\" section=\"example1\"}$percnt" 
 }%
 
@@ -221,6 +219,7 @@ Below example lists all topics in the %SYSTEMWEB% web that have the [[%SYSTEMWEB
    pagelength="10"
    lengthmenu="5, 10, 20, 50, 100"
    columns="index, Topic, Description, Version, Release, Author"
+   width="100%"
 }%
 %ENDSECTION{"example3"}%
 </verbatim>
@@ -248,6 +247,7 @@ Below example lists all topics in the %SYSTEMWEB% web that have the [[%SYSTEMWEB
    selectmode="multi"
    selectproperty="Topic"
    selection="%URLPARAM{"Topic"}%"
+   width="100%"
 }%
 %BUTTON{"%TRANSLATE{"Submit"}%" type="submit" icon="tick"}%
 </form>
@@ -319,10 +319,10 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 %DATATABLE{
    form="Invoice"
    class="foswikiFlatTable foswikiTable foswikiStripes"
-   web="%SYSTEMWEB%"
    paging="on"
    columns="Topic,Client,Total,State,IssueDate,DueDate"
    rows="10"
+   width="100%"
    sort="DueDate"
    ordering="off"
    searching="on"
@@ -335,7 +335,7 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
       }; 
       return cls; "
 }%
-%JQREQUIRE{"autocolor"}%
+%JQREQUIRE{"autocolor" warn="off"}%
 <style>
 .dataTable tr.past {
   border-top: 3px solid #3e89d3;
@@ -371,6 +371,9 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  08 Sep 2026: | make use of reverse indexes in dbcache connector |
+|  10 Apr 2026: | added =start= parameter |
+|  13 Jan 2026: | fixed saving/restoring row filters |
 |  13 Jan 2025: | remove dependency on jquery.metadata; improve rendering of topic formfields; remove support for old browsers |
 |  06 Nov 2024: | added =rowcallback= |
 |  29 Apr 2024: | fixed sort/hide/select columns when using datatable sections |
@@ -418,7 +421,7 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012 SvenDowideit@fosiki.com, 2013-2025 Michael Daum"}%
+%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012 Sven Dowideit, 2013-2026 Michael Daum"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
 %META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25TOPIC%25"}%
 %META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25TOPIC%25"}%

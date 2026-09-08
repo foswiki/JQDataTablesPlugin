@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2025 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2026 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -91,7 +91,6 @@ sub new {
       search => 'lc(n2d(createdate))', 
       sort => 'createdate' 
     },
-
     'By' => {
       type => 'user',
       data => 'info.author',
@@ -350,17 +349,26 @@ sub search {
   my ($this, %params) = @_;
 
   _writeDebug("called search");
-  #_writeDebug("params=".dump(\%params)) if TRACE;
+  #_writeDebug("params=".dump(\%params));
 
   my $formDef;
-  $formDef = $this->getForm(undef $params{form}) if $params{form};
+  if ($params{form}) {
+    my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $params{form});
+    $formDef = $this->getForm($formWeb, $formTopic);
+
+    if (defined $params{context}) {
+      undef $params{form}; # SMELL: context + form indexes don't work together
+    } else {
+      $params{form} = $formTopic;
+    }
+  }
 
   my $sort;
   my $reverse;
   my @sort = ();
   foreach my $s (split(/\s*,\s*/, $params{sort})) {
     my $desc = $this->getColumnDescription($s, $formDef);
-    push @sort, $desc->{sort} if defined $desc;
+    push @sort, split(/\s*,\s*/, $desc->{sort}) if defined $desc;
   }
   $sort = join(", ", @sort);
 
@@ -388,6 +396,7 @@ sub search {
       $core->currentWeb($web);
 
       _writeDebug("query=$params{query}");
+      $params{topics} = $db->getTopics(\%params, $params{topics});
       $hits = $db->dbQuery($params{query}, $params{topics}, $sort, $reverse, $params{include}, $params{exclude}, $hits, $params{context});
 
       $core->currentWeb("");

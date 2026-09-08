@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# JQDataTablesPlugin is Copyright (C) 2013-2025 Michael Daum http://michaeldaumconsulting.com
+# JQDataTablesPlugin is Copyright (C) 2013-2026 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -113,7 +113,6 @@ sub handleDataTableSection {
   delete $data->{"server-side"};
 
   my $html5Data = $this->formatHtml5Data($data) // "";
-  #print STDERR "html5Data=$html5Data\n";
 
   return "<literal><div class='$data->{_class}' $html5Data></literal>";
 }
@@ -135,13 +134,13 @@ sub handleDataTable {
   return _inlineError($error) if defined $error;
 
   my $width = delete $data->{_width};
-  $width = defined($width) ? "width='$width'" : "";
+  $width = defined($width) ? "style='width:calc($width - 1px)'" : "";
 
   my $html5Data = $this->formatHtml5Data($data);
 
   my $result = <<"HERE";
 <literal>
-<literal><div class='$data->{_class}' $html5Data></literal>
+<div class='$data->{_class}' $html5Data>
 <table class='foswikiTable' $width>
   <thead>$data->{_thead}</thead>
   <tbody>
@@ -224,8 +223,12 @@ sub parseParams {
     $data{"length-menu"} = [map { int($_) } split(/\s*,\s*/, $theLengthMenu)];
   }
 
-  my $thePageLength = $params->{rows} || $params->{pagelength};
+  my $thePageLength = $params->{rows} || $params->{pagelength} || 10;
   $data{"page-length"} = $thePageLength if $thePageLength;
+
+  my $theStartPage = (($params->{start} // 0) -1) * $thePageLength;
+  $theStartPage = 0 if $theStartPage < 0;
+  $data{"display-start"} = $theStartPage;
 
   my $theSelecting = Foswiki::Func::isTrue($params->{selecting}, 0);
   my $theSelectMode = $params->{selectmode} || "multi";
@@ -288,7 +291,7 @@ sub parseParams {
     $data{"buttons"} = \@buttons;
   }
 
-  my %hiddenColumns = map { $_ => 1 } split(/\s*,\s*/, $params->{hidecolumns} || '');
+  my %hiddenColumns = map { $_ => 1 } split(/\s*,\s*/, $params->{hidecolumns} // '');
   my $theRowGroup = $params->{rowgroup};
   if (defined $theRowGroup && $theRowGroup ne "") {
     Foswiki::Plugins::JQueryPlugin::createPlugin("datatablesrowgroup");
@@ -364,13 +367,14 @@ sub parseParams {
   my %order = (); 
   unless ($isSection) {
     my $index = 0;
+
+    # SMELL: required for index column
     unless (grep { my $fieldName = ref($_) ? $_->{name} : $_; $fieldName =~ /^($theSelectProperty)$/i } @columnFields) {
-      push @columns,
-        {
+      push @columns, {
         data => $theSelectProperty,
         name => $theSelectProperty,
         visible => JSON::false,
-        };
+      };
       push @thead, "<th>$theSelectProperty</th>";
       push @multiFilter, "<th></th>";
       $index++;
@@ -429,7 +433,7 @@ sub parseParams {
       if (!defined($col->{searchable})
         || $col->{searchable} eq JSON::true)
       {
-        push @multiFilter, "<th><input type='text' class='colSearch foswikiInputField' data-column='$fieldName' /></th>";
+        push @multiFilter, "<th><input type='search' class='colSearch foswikiInputField' data-column='$fieldName' /></th>";
       } else {
         push @multiFilter, "<th></th>";
       }
@@ -524,12 +528,16 @@ sub parseParams {
     || 'search';
 
   my $theWebs = $params->{web} || $params->{webs} || $web;
+
+  my $topicType = $params->{TopicType};
+
   my $ajax = {
     url => $url,
     type => "post",
     data => {
       t => $time,
       form => $formParam,
+      topicType => $topicType,
       topic => "$thisWeb.$thisTopic",
       webs => $theWebs,
       connector => $connector,

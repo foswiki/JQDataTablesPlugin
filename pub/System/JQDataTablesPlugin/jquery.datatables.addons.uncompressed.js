@@ -489,6 +489,18 @@ jQuery(function($) {
         'B<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"rl>'+
         't'+
         '<"fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"ip>';
+
+      if (opts.stateSave) {
+        opts.stateLoadParams = function(data, settings) {
+          var colSearchRow = $(".colSearchRow", this.api().table().container());
+          settings.columns.forEach(function(col,i) {
+            if (col.visible) {
+              let val = col.search.search;
+              colSearchRow.find(`th:nth-child(${i+1}) input`).val(val);
+            }
+          });
+        };
+      }
     }
 
     $table.each(function() {
@@ -682,7 +694,7 @@ jQuery(function($) {
       });
 
       // add multi filter
-      $(".colSearch", dt.table().container()).on("keyup change", function() {
+      $(".colSearch", dt.table().container()).on("keyup change search", function() {
         var $this = $(this),
             colSelector = $this.data("column")+":name",
             column = dt.column(colSelector),
@@ -723,8 +735,6 @@ jQuery(function($) {
           $(this).removeClass("hover");
         }
       }, ".dataTable tbody > tr");
-
-
     });
   });
 });

@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2014-2025 Michael Daum, http://michaeldaumconsulting.com
+# Copyright (C) 2014-2026 Michael Daum, http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -131,6 +131,7 @@ sub restHandleSearch {
   my $skip = $request->param("start") || 0;
   my $limit = $request->param("length") || 10;
   my $form = $request->param("form");
+  my $topicType = $request->param("topicType");
   my $web = $request->param("web") || $this->{session}{webName};
   my $topic = $request->param("topic") || $this->{session}{topicName};
   my $webs = $request->param("webs");
@@ -187,6 +188,7 @@ sub restHandleSearch {
     skip => $skip,
     form => $form,
     context => $context,
+    TopicType => $topicType,
   );
 
   my $result = {

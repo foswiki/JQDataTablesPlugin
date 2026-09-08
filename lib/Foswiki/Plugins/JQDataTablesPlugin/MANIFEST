@@ -16,8 +16,8 @@ lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/Scroller.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DataTables/Select.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DBCacheConnector.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/DEPENDENCIES 0644
-lib/Foswiki/Plugins/JQDataTablesPlugin/MANIFEST 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/FoswikiConnector.pm 0644
+lib/Foswiki/Plugins/JQDataTablesPlugin/MANIFEST 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/SearchConnector.pm 0644
 lib/Foswiki/Plugins/JQDataTablesPlugin/SolrConnector.pm 0644

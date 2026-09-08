@@ -1088,7 +1088,7 @@ $.fn.DataTable.KeyTable = KeyTable;
 DataTable.Api.register( 'cell.blur()', function () {
 	return this.iterator( 'table', function (ctx) {
 		if ( ctx.keytable ) {
-			ctx.keytable.blur();
+			ctx.keytable.trigger("blur");
 		}
 	} );
 } );
