@@ -355,12 +355,6 @@ sub search {
   if ($params{form}) {
     my ($formWeb, $formTopic) = Foswiki::Func::normalizeWebTopicName(undef, $params{form});
     $formDef = $this->getForm($formWeb, $formTopic);
-
-    if (defined $params{context}) {
-      undef $params{form}; # SMELL: context + form indexes don't work together
-    } else {
-      $params{form} = $formTopic;
-    }
   }
 
   my $sort;
@@ -396,6 +390,7 @@ sub search {
       $core->currentWeb($web);
 
       _writeDebug("query=$params{query}");
+      undef $params{form}; # SMELL: don't use the form index
       $params{topics} = $db->getTopics(\%params, $params{topics});
       $hits = $db->dbQuery($params{query}, $params{topics}, $sort, $reverse, $params{include}, $params{exclude}, $hits, $params{context});
 

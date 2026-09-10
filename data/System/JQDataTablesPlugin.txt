@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1788867632" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1789021268" format="1.1" version="1"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -371,7 +371,6 @@ In addition, any client cell will auto-colored using Foswiki:Extensions/JQAutoCo
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
-|  08 Sep 2026: | make use of reverse indexes in dbcache connector |
 |  10 Apr 2026: | added =start= parameter |
 |  13 Jan 2026: | fixed saving/restoring row filters |
 |  13 Jan 2025: | remove dependency on jquery.metadata; improve rendering of topic formfields; remove support for old browsers |
